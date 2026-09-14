@@ -1,0 +1,4 @@
+import './core.test.mjs';
+import './updates.test.mjs';
+import './level-up.test.mjs';
+import './consolidated.test.mjs';

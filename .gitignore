@@ -1,0 +1,5 @@
+node_modules/
+.DS_Store
+scroll-*-baseline.json
+scroll-backup*.json
+scroll-recovery*.json
