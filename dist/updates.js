@@ -66,3 +66,6 @@ export function previewUpdate(state,input){
 }
 export function updateTemplate(state){return {format:'scroll-session-update',version:1,campaign_id:state.campaign_id,lineage_id:state.lineage_id,update_id:'REPLACE-WITH-NEW-UNIQUE-ID',base_revision:state.current_revision,operations:[]};}
 export function clipboardCandidate(text,state){try{const u=parseUpdate(text);if(u.campaign_id!==state.campaign_id||u.lineage_id!==state.lineage_id)return null;const p=previewUpdate(state,u);return p.status==='already_applied'?null:u;}catch{return null;}}
+
+// The guard keeps its machine-readable refresh; the UI copies one complete DM handoff.
+export function refreshHandoff(refresh){return 'This is my current Scroll state — please regenerate the pending update using this lineage_id and current_revision as base_revision. Include only changes that are still pending, use a new update_id, and return a complete Scroll update for me to review. Resolve scheduled events in our primary campaign conversation.\n\n'+refresh;}
