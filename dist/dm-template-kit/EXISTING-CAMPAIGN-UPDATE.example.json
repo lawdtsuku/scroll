@@ -1,0 +1,17 @@
+{
+  "format": "scroll-session-update",
+  "version": 1,
+  "campaign_id": "REPLACE-WITH-UNIQUE-CAMPAIGN-ID",
+  "lineage_id": "REPLACE-FROM-CURRENT-SCROLL-STATE",
+  "update_id": "REPLACE-WITH-UNIQUE-UPDATE-ID",
+  "base_revision": 1,
+  "operations": [
+    {
+      "op": "adjust_resource",
+      "character_id": "REPLACE-WITH-UNIQUE-CHARACTER-ID",
+      "resource": "health",
+      "delta": -1,
+      "reason": "Example only — replace with confirmed pending change"
+    }
+  ]
+}

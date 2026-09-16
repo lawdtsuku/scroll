@@ -1,0 +1,106 @@
+{
+  "format": "scroll-foundation-baseline",
+  "version": 1,
+  "campaign_id": "REPLACE-WITH-UNIQUE-CAMPAIGN-ID",
+  "state": {
+    "schema_version": 1,
+    "campaign_id": "REPLACE-WITH-UNIQUE-CAMPAIGN-ID",
+    "lineage_id": "assigned-by-scroll-on-import",
+    "display_name": "Example campaign — replace before importing",
+    "system_label": "",
+    "current_day": 1,
+    "day_label": {
+      "singular": "day",
+      "plural": "days"
+    },
+    "day_zero_note": "",
+    "resources": [
+      {
+        "id": "health",
+        "label": "Health"
+      },
+      {
+        "id": "energy",
+        "label": "Energy"
+      }
+    ],
+    "currency": {
+      "id": "coins",
+      "label": "Coins"
+    },
+    "level_thresholds": {},
+    "ability_slots_enabled": true,
+    "current_revision": 0,
+    "characters": [
+      {
+        "character_id": "REPLACE-WITH-UNIQUE-CHARACTER-ID",
+        "campaign_id": "REPLACE-WITH-UNIQUE-CAMPAIGN-ID",
+        "name": "Example character",
+        "level": 1,
+        "xp_total": 0,
+        "resources": [
+          {
+            "id": "health",
+            "current": 10,
+            "max": 10
+          },
+          {
+            "id": "energy",
+            "current": 5,
+            "max": 5
+          }
+        ],
+        "currency_amount": 0,
+        "attributes": [
+          {
+            "key": "example_attribute",
+            "label": "Example attribute",
+            "value": 10,
+            "note": "Replace with the confirmed literal note for this game."
+          }
+        ],
+        "profile": {
+          "concept": "",
+          "motivation": "",
+          "notes": "",
+          "details": []
+        },
+        "inventory": [
+          {
+            "item": "Example supply",
+            "qty": 1,
+            "consumable": true,
+            "notes": "Replace with actual inventory."
+          }
+        ],
+        "reference_revision": 0,
+        "ability_slots": [
+          {
+            "index": 1,
+            "name": "Example method",
+            "applications": [
+              {
+                "name": "Example application",
+                "status": "trained_unquantified",
+                "cost": "not yet quantified",
+                "range": "not yet quantified",
+                "effect": "not yet quantified",
+                "notes": "Replace with confirmed application details and explicit status."
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "name": null,
+            "applications": []
+          }
+        ]
+      }
+    ],
+    "journal": [],
+    "transactions": [],
+    "sessions": [],
+    "recovery": [],
+    "pending_migration": null
+  }
+}
