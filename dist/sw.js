@@ -1,4 +1,4 @@
-const CACHE='scroll-consolidated-v7';
+const CACHE='scroll-consolidated-v8';
 const ASSETS=['./','./index.html','./style.css','./app.js','./boot.js','./core.js','./db.js','./updates.js','./progress.js','./operation-policy.js','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>/^scroll-(?:m[12]-|consolidated-)/.test(k)&&k!==CACHE).map(k=>caches.delete(k))))));
