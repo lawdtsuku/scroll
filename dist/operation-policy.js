@@ -1,5 +1,6 @@
+import {ROSTER_OPERATIONS} from './roster.js';
 // Positive allowlist. New operation names fail closed for every transport.
-export const AUTOMATABLE_OPERATIONS = Object.freeze(['set_xp','set_currency','set_level_threshold','log_threshold_attempt','set_ability_detail','adjust_resource','set_resource_max','set_level','set_attribute','award_xp','adjust_currency','adjust_inventory','advance_day']);
+export const AUTOMATABLE_OPERATIONS = Object.freeze([...ROSTER_OPERATIONS,'set_xp','set_currency','set_level_threshold','log_threshold_attempt','set_ability_detail','adjust_resource','set_resource_max','set_level','set_attribute','award_xp','adjust_currency','adjust_inventory','advance_day']);
 export const HUMAN_ONLY_OPERATIONS = Object.freeze(['set_dc','amend_dc','set_threshold_dc','record_roll','append_roll','correct_roll','write_roll_log','amend_event_date','resolve_event','edit_journal','edit_audit_journal']);
 export function assertAutomatable(operations) {
   if(!Array.isArray(operations))throw new Error('Operations must be a list.');

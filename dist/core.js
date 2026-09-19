@@ -1,3 +1,4 @@
+import {validateRoster,applyRoster} from './roster.js';
 import {createScheduler,validateScheduler,applyExtended,advance,safeDisplay,schedulerProjection,dayToken,visibleEvents,thresholdProgress} from './progress.js';
 import {assertImportable,operationIdentity} from './operation-policy.js';
 export const VERSION = 1;
@@ -30,7 +31,7 @@ export function validateCharacter(c, campaign) {
   if(c.ability_slots!==undefined){ if(!campaign.ability_slots_enabled) fail('Ability slots are disabled.'); array(c.ability_slots,'Slots'); unique(c.ability_slots,'index'); for(const s of c.ability_slots){ keys(s,['index','name','applications'],'slot'); num(s.index,'Slot index',1); if(s.name!==null) str(s.name,'Slot name'); if(s.applications!==undefined){array(s.applications,'Applications'); s.applications.forEach(a=>{if(typeof a==='string')str(a,'Application');else{keys(a,['name','status','cost','range','effect','notes','threshold_id'],'application');str(a.name,'Application name');if(!['locked','trained_unquantified','in_development'].includes(a.status))fail('Explicit application status required.');for(const k of ['cost','range','effect','notes'])str(a[k],k);if(a.status==='in_development')str(a.threshold_id,'Linked threshold ID');}});} } }
 }
 export function validateState(s) {
-  keys(s,['schema_version','campaign_id','lineage_id','display_name','system_label','current_day','day_label','day_zero_note','resources','currency','level_thresholds','ability_slots_enabled','current_revision','characters','journal','transactions','sessions','recovery','pending_migration','scheduler','thresholds'],'campaign');
+  keys(s,['schema_version','campaign_id','lineage_id','display_name','system_label','current_day','day_label','day_zero_note','resources','currency','level_thresholds','ability_slots_enabled','current_revision','characters','journal','transactions','sessions','recovery','pending_migration','scheduler','thresholds','roster','roster_config','roster_level_thresholds'],'campaign');
   if(s.schema_version!==VERSION) fail('Unsupported schema version.');
   for(const k of ['campaign_id','lineage_id','display_name']) str(s[k],k);
   str(s.system_label,'System label',true); str(s.day_zero_note,'Calendar note',true);
@@ -60,7 +61,7 @@ export function validateState(s) {
   for(let i=0;i<s.journal.length;i++){const j=s.journal[i];keys(j,['journal_seq','transaction_id','campaign_id','timestamp','in_world_day','character_id','entity','entity_id','field','from','to','reason','source'],'journal entry'); if(j.journal_seq!==i+1)fail('Journal sequence is broken.'); if(j.campaign_id!==s.campaign_id) fail('Journal belongs to another campaign.'); if(j.character_id!==null && !s.characters.some(c=>c.character_id===j.character_id)) fail('Unknown journal character.'); for(const k of ['transaction_id','timestamp','entity','entity_id','field','reason'])str(j[k],k); num(j.in_world_day,'Journal day',0); if(!Object.hasOwn(j,'from')||!Object.hasOwn(j,'to'))fail('Journal values missing.'); const t=s.transactions.find(t=>t.transaction_id===j.transaction_id); if(!t || !t.journal_seqs.includes(j.journal_seq)||t.source!==j.source)fail('Journal transaction reference is invalid.'); }
   for(const t of s.transactions)for(const seq of t.journal_seqs)if(s.journal[seq-1]?.transaction_id!==t.transaction_id)fail('Transaction journal reference is invalid.');
   array(s.recovery,'Recovery history'); s.recovery.forEach(r=>{keys(r,['restored_at','reason','backup_id','previous_lineage','new_lineage'],'recovery'); Object.values(r).forEach(v=>str(v,'Recovery value'));});
-  validateScheduler(s);
+  validateScheduler(s);validateRoster(s);
   if(s.pending_migration!==null) validatePending(s.pending_migration,s);
   return s;
 }
@@ -76,7 +77,7 @@ export function newCampaign(config){
  const s={schema_version:1,campaign_id:uid(),lineage_id:uid(),display_name:config.display_name,system_label:config.system_label||'',current_day:config.current_day??1,day_label:config.day_label||{singular:'day',plural:'days'},day_zero_note:config.day_zero_note||'',resources:config.resources||[],currency:config.currency||{id:'currency',label:'Currency'},level_thresholds:config.level_thresholds||{},ability_slots_enabled:config.ability_slots_enabled??false,current_revision:0,characters:[],journal:[],transactions:[],sessions:[],recovery:[],pending_migration:null,scheduler:createScheduler(),thresholds:[]};
  s.characters=[blankCharacter(s,config.character_name||'New character')];return validateState(s);
 }
-const gameFields=['current_day','characters','sessions','level_thresholds','thresholds'];
+const gameFields=['current_day','characters','sessions','level_thresholds','thresholds','roster','roster_config','roster_level_thresholds'];
 function changes(before,after,path=''){
  if(same(before,after))return [];
  if(before && after && typeof before==='object' && typeof after==='object' && !Array.isArray(before)&&!Array.isArray(after))return [...new Set([...Object.keys(before),...Object.keys(after)])].flatMap(k=>changes(before[k],after[k],path?`${path}.${k}`:k));
@@ -86,7 +87,7 @@ export function preview(state, operations, reason, source='manual'){
  validateState(state);str(reason,'Reason');array(operations,'Operations');if(!operations.length)fail('No changes to review.');if(!['manual','restore','dm_handoff'].includes(source))fail('Unsupported update source.');if(source==='dm_handoff')assertImportable(operations);
  const next=clone(state), diffs=[];
  for(const supplied of operations){object(supplied,'Operation');const o={...supplied};if(o.effective_day!==undefined){num(o.effective_day,'Effective day',0);delete o.effective_day;} object(o,'Operation'); const before=clone(next); let c;
-   if(applyExtended(next,o)){}else if(['set_resource_max','set_level','set_attribute'].includes(o.op)){
+   if(applyRoster(next,o)||applyExtended(next,o)){}else if(['set_resource_max','set_level','set_attribute'].includes(o.op)){
     str(o.character_id,'Character ID');str(o.reason,'Operation reason');c=next.characters.find(x=>x.character_id===o.character_id);if(!c)fail('Unknown character.');
     if(o.op==='set_resource_max'){keys(o,['op','character_id','resource','value','reason'],'operation');num(o.value,'Resource maximum',0);const r=c.resources.find(r=>r.id===o.resource);if(!r)fail('Unknown resource for this character.');r.max=o.value;}
     if(o.op==='set_level'){keys(o,['op','character_id','value','reason'],'operation');num(o.value,'Level',1);c.level=o.value;}
@@ -110,7 +111,16 @@ export function preview(state, operations, reason, source='manual'){
    if(!same(before.scheduler,next.scheduler))diffs.push({character_id:null,entity:'campaign',entity_id:next.campaign_id,field:'scheduler',from:schedulerProjection(before),to:{...schedulerProjection(next),change:o.op},reason:['schedule_event','amend_event_date','configure_migrated_events'].includes(o.op)?'imported':o.reason||reason});
    if(c)validateCharacter(next.characters.find(x=>x.character_id===c.character_id),next);
    for(const field of gameFields){
-    if(field==='characters'){
+    if(field==='roster'){
+      for(const member of next.roster||[]){const old=before.roster?.find(m=>m.roster_id===member.roster_id);const deltas=[];
+       if(!old)deltas.push({field:'member_created',from:null,to:clone(member)});
+       else{for(const key of Object.keys(member)){if(key==='resources'){for(const part of ['current','max'])if(old.resources[0][part]!==member.resources[0][part])deltas.push({field:part+' HP',from:old.resources[0][part],to:member.resources[0][part]});}
+        else if(key==='moves'){for(const move of member.moves){const previous=old.moves.find(m=>m.move_id===move.move_id);for(const d of changes(previous,move))deltas.push({...d,field:'move '+move.name+' '+(d.field||'added')});}for(const removed of old.moves.filter(m=>!member.moves.some(n=>n.move_id===m.move_id)))deltas.push({field:'move removed',from:removed,to:null});}
+        else for(const d of changes(old[key],member[key],key))deltas.push(d);}}
+       for(const d of deltas)diffs.push({...d,field:'roster '+(member.nickname||member.species)+' · '+d.field,character_id:member.owner_character_id,entity:'roster',entity_id:member.roster_id,reason:o.reason||reason});
+      }
+    }else if(field==='characters'){
+
       for(const char of next.characters){const old=before.characters.find(x=>x.character_id===char.character_id);for(const d of changes(old,char))diffs.push({...d,field:d.field||'character_created',character_id:char.character_id,entity:'character',entity_id:char.character_id,reason:o.reason||reason});}
     }else for(const d of changes(before[field],next[field],field))diffs.push({...d,character_id:null,entity:'campaign',entity_id:next.campaign_id,reason:o.reason||reason});
    }
@@ -125,13 +135,13 @@ function finalize(state,next,operations,reason,source,diffs){
  return {campaign_id:state.campaign_id,base_revision:state.current_revision,lineage_id:state.lineage_id,next,diffs,reason};
 }
 export function prepareCreation(state,reason){state=clone(state);if(!state.scheduler){state.scheduler=createScheduler();state.thresholds=clone(state.pending_migration?.thresholds||[]);}validateState(state);str(reason,'Reason');if(state.current_revision!==0||state.journal.length||state.transactions.length)fail('Not a new baseline.');return finalize(state,clone(state),[{op:'establish_baseline'}],reason,'restore',[{character_id:null,entity:'campaign',entity_id:state.campaign_id,field:'opening_baseline',from:null,to:clone(state)}]);}
-export function backup(state){validateState(state);return {format:'scroll-backup',version:3,campaign_id:state.campaign_id,backup_id:uid(),exported_at:now(),state:clone(state)};}
+export function backup(state){validateState(state);return {format:'scroll-backup',version:4,campaign_id:state.campaign_id,backup_id:uid(),exported_at:now(),state:clone(state)};}
 export function parseBackup(text){
- if(text.length>20*1024*1024)fail('Backup exceeds the 20 MB import limit.');const b=JSON.parse(text);keys(b,['format','version','campaign_id','backup_id','exported_at','state'],'backup');if(b.format!=='scroll-backup'||![1,2,3].includes(b.version))fail('Choose a supported Scroll backup, not a session update or migration document.');str(b.backup_id,'Backup ID');str(b.exported_at,'Export date');validateState(b.state);if(b.version===1&&b.state.transactions.some(t=>t.update))fail('Version 1 backups cannot contain import receipts.');if(b.campaign_id!==b.state.campaign_id)fail('Backup campaign identity does not match.');return b;
+ if(text.length>20*1024*1024)fail('Backup exceeds the 20 MB import limit.');const b=JSON.parse(text);keys(b,['format','version','campaign_id','backup_id','exported_at','state'],'backup');if(b.format!=='scroll-backup'||![1,2,3,4].includes(b.version))fail('Choose a supported Scroll backup, not a session update or migration document.');str(b.backup_id,'Backup ID');str(b.exported_at,'Export date');validateState(b.state);if(b.version===1&&b.state.transactions.some(t=>t.update))fail('Version 1 backups cannot contain import receipts.');if(b.campaign_id!==b.state.campaign_id)fail('Backup campaign identity does not match.');return b;
 }
 export function prepareRestore(b,current,reason){
  parseBackup(JSON.stringify(b));str(reason,'Restore reason');if(current&&current.campaign_id!==b.campaign_id)fail('Restore target mismatch.');const next=clone(b.state);const previous=next.lineage_id;next.lineage_id=uid();next.recovery.push({restored_at:now(),reason,backup_id:b.backup_id,previous_lineage:previous,new_lineage:next.lineage_id});
  const p=finalize(b.state,next,[{op:'restore_backup',backup_id:b.backup_id}],reason,'restore',[{character_id:null,entity:'campaign',entity_id:next.campaign_id,field:'lineage_id',from:previous,to:next.lineage_id}]);
  return {...p,base_revision:current?.current_revision??null,lineage_id:current?.lineage_id??null,diffs:[{character_id:null,entity:'campaign',entity_id:next.campaign_id,field:'Restore complete campaign',from:current?`${current.display_name}, day ${current.current_day}, ${current.journal.length} journal entries`:'No saved campaign',to:`${next.display_name}, day ${next.current_day}, ${b.state.journal.length} imported journal entries; new lineage`}]};
 }
-export function summary(s){const lastAdvance=s.transactions.findLast(t=>t.operations.some(o=>o.op==='advance_day'));const span=lastAdvance?s.journal.find(j=>j.transaction_id===lastAdvance.transaction_id&&j.field==='current_day'):null;const tokens=span&&s.scheduler?Array.from({length:Math.max(0,span.to-span.from)},(_,i)=>dayToken(s,span.from+i+1)):[];return JSON.stringify({format:'scroll-state-summary',version:1,campaign_id:s.campaign_id,lineage_id:s.lineage_id,current_revision:s.current_revision,current_day:s.current_day,day_token:dayToken(s),last_advance_tokens:tokens,day_label:s.day_label.singular,scope:'Confirmed saved state. Retain all unsubmitted DM changes. Rolls are external. Only day advance triggers scheduled events.',event_resolution_reminder:'Resolve scheduled events in your primary campaign conversation, not a side conversation.',unresolved_events:visibleEvents(s),pending_remainder:s.scheduler?.remainder||null,characters:s.characters.map(c=>({character_id:c.character_id,name:c.name,level:c.level,xp_total:c.xp_total,resources:c.resources,currency:{label:s.currency.label,amount:c.currency_amount},inventory:c.inventory,inventory_complete:true})),level_thresholds:s.level_thresholds,thresholds:s.thresholds||[],session:s.sessions.find(x=>x.state==='open')||null,pending_migration:s.pending_migration?'Migration configuration still needs review.':null},null,2);}
+export function summary(s){const lastAdvance=s.transactions.findLast(t=>t.operations.some(o=>o.op==='advance_day'));const span=lastAdvance?s.journal.find(j=>j.transaction_id===lastAdvance.transaction_id&&j.field==='current_day'):null;const tokens=span&&s.scheduler?Array.from({length:Math.max(0,span.to-span.from)},(_,i)=>dayToken(s,span.from+i+1)):[];return JSON.stringify({format:'scroll-state-summary',version:1,campaign_id:s.campaign_id,lineage_id:s.lineage_id,current_revision:s.current_revision,current_day:s.current_day,day_token:dayToken(s),last_advance_tokens:tokens,day_label:s.day_label.singular,scope:'Confirmed saved state. Retain all unsubmitted DM changes. Rolls are external. Only day advance triggers scheduled events.',event_resolution_reminder:'Resolve scheduled events in your primary campaign conversation, not a side conversation.',unresolved_events:visibleEvents(s),pending_remainder:s.scheduler?.remainder||null,characters:s.characters.map(c=>({character_id:c.character_id,name:c.name,level:c.level,xp_total:c.xp_total,resources:c.resources,currency:{label:s.currency.label,amount:c.currency_amount},inventory:c.inventory,inventory_complete:true})),roster:s.roster||[],roster_config:s.roster_config||{label:'Roster'},roster_level_thresholds:s.roster_level_thresholds||{},level_thresholds:s.level_thresholds,thresholds:s.thresholds||[],session:s.sessions.find(x=>x.state==='open')||null,pending_migration:s.pending_migration?'Migration configuration still needs review.':null},null,2);}

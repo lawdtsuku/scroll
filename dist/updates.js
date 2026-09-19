@@ -1,3 +1,4 @@
+import {ROSTER_OPERATIONS} from './roster.js';
 import {applyExtended,dayToken,safeDisplay,planAdvance} from './progress.js';
 import {preview,validateState,summary,clone} from './core.js';
 import {assertImportable,operationIdentity} from './operation-policy.js';
@@ -22,7 +23,7 @@ export function validateUpdate(u){
  if(!Array.isArray(u.operations)||!u.operations.length||u.operations.length>200)fail('An update needs 1–200 operations.');
  assertImportable(u.operations);
  for(const o of u.operations){if(o.effective_day!==undefined)integer(o.effective_day,'effective_day',0);
-  if(['set_xp','set_currency','set_level_threshold','log_threshold_attempt','set_ability_detail','set_threshold_dc','schedule_event','amend_event_date','resolve_event','configure_migrated_events','activate_scheduler'].includes(o.op)){text(o.reason,'Operation reason');if(o.op!=='activate_scheduler')text(o.character_id,'character_id');continue;}
+  if([...ROSTER_OPERATIONS,'set_xp','set_currency','set_level_threshold','log_threshold_attempt','set_ability_detail','set_threshold_dc','schedule_event','amend_event_date','resolve_event','configure_migrated_events','activate_scheduler'].includes(o.op)){text(o.reason,'Operation reason');if(o.op!=='activate_scheduler')text(o.character_id,'character_id');continue;}
   const allowed={adjust_resource:['resource','delta'],set_resource_max:['resource','value'],set_level:['value'],set_attribute:['key','value','note'],award_xp:['delta'],adjust_currency:['delta'],adjust_inventory:['item','delta','consumable','notes'],advance_day:['to_day','skip_through']}[o.op];
   fields(o,['op','reason','effective_day',...(o.op==='advance_day'?[]:['character_id']),...allowed]);text(o.reason,'Operation reason');
   if(o.op==='advance_day')integer(o.to_day,'to_day',0);

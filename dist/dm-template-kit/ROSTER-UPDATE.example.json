@@ -1,0 +1,80 @@
+{
+  "format": "scroll-session-update",
+  "version": 1,
+  "campaign_id": "FROM-APP",
+  "lineage_id": "FROM-APP",
+  "update_id": "NEW-UNIQUE-UPDATE-ID",
+  "base_revision": 1,
+  "operations": [
+    {
+      "op": "add_roster_member",
+      "character_id": "FROM-APP-CHARACTER-ID",
+      "reason": "Example only: replace with confirmed catch and stats",
+      "member": {
+        "roster_id": "NEW-UNIQUE-ROSTER-ID",
+        "owner_character_id": "FROM-APP-CHARACTER-ID",
+        "status": "active",
+        "species": "Test species",
+        "nickname": "Example partner",
+        "level": 1,
+        "xp_total": 20,
+        "resources": [
+          {
+            "id": "hp",
+            "current": 12,
+            "max": 12
+          }
+        ],
+        "stats": [
+          {
+            "key": "stat-0",
+            "label": "HP",
+            "value": 10
+          },
+          {
+            "key": "stat-1",
+            "label": "Attack",
+            "value": 10
+          },
+          {
+            "key": "stat-2",
+            "label": "Defense",
+            "value": 10
+          },
+          {
+            "key": "stat-3",
+            "label": "Special attack",
+            "value": 10
+          },
+          {
+            "key": "stat-4",
+            "label": "Special defense",
+            "value": 10
+          },
+          {
+            "key": "stat-5",
+            "label": "Speed",
+            "value": 10
+          }
+        ],
+        "moves": [
+          {
+            "move_id": "move-a",
+            "name": "Test move",
+            "type": "Test",
+            "category": "Physical",
+            "power": 40,
+            "accuracy": 100,
+            "pp_current": 5,
+            "pp_max": 5,
+            "effect": "Confirmed test effect"
+          }
+        ],
+        "ability": "Catch result",
+        "bond": "Trusted",
+        "held_item": null,
+        "status_condition": null
+      }
+    }
+  ]
+}

@@ -47,3 +47,6 @@ The simple fresh-start example has no training history or scheduled events. Do n
 Every sample ID and base_revision must be replaced with the current app-provided values. Replace the sample operation with the actual pending changes; do not import the example directly. See OPERATION-REFERENCE.md for the supported operation fields.
 
 For an existing game, export a full backup from the device holding the campaign before moving it. Give the DM current state and character reference exports to prepare remaining changes. A summary cannot recover a frozen calendar.
+
+## Owned roster and second-phone viewing
+Read ROSTER-AND-SNAPSHOTS.md for owned roster fields and the new operations. ROSTER-UPDATE.example.json contains fictional test values to replace before import. A second player uses the separate Trainer snapshot viewer and receives an app-exported snapshot; never a full baseline or backup.

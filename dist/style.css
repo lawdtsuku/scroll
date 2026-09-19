@@ -38,3 +38,10 @@ progress::-moz-progress-bar{background:var(--sage-fill)}
 .play-grid + .card{margin-top:1.3rem}
 @media(prefers-reduced-motion:no-preference){details[open]>:not(summary){animation:unfurl .2s ease-out;transform-origin:top}@keyframes unfurl{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}}
 @media(max-width:720px){.resource,.attribute{min-width:0}.big-number{font-size:clamp(2rem,8vw,2.8rem);overflow-wrap:anywhere}.big-number span{font-size:1rem}.card{padding-top:1.3rem}.calendar .day-number{grid-row:auto;grid-column:1/-1}.calendar button{grid-column:1/-1}.calendar .day-token{padding:.6rem 0}.ability-name{font-size:1.35rem}.status{max-width:100%;white-space:normal}.stat-value{overflow-wrap:anywhere}}
+/* Owned roster and the separate snapshot reader. Every data surface stays flat. */
+.roster-member,.snapshot-workspace>.card,#snapshot-content>.card{margin:1.3rem 0}
+.roster-member .resource{margin:1rem 0}.roster-member .ref-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.roster-facts{display:grid;grid-template-columns:minmax(100px,1fr) 2fr;gap:.65rem;margin:1rem 0;line-height:1.6}
+.roster-facts dt{font-weight:650}.roster-facts dd{margin:0;overflow-wrap:anywhere}
+.snapshot-workspace{max-width:950px}.snapshot-workspace h1{overflow-wrap:anywhere}.button-link{display:inline-block;padding:.75rem 1rem;min-height:44px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--green);font-weight:600;text-decoration:none}
+@media(max-width:720px){.roster-facts{grid-template-columns:1fr}.roster-facts dd{margin-bottom:.5rem}.snapshot-workspace .topbar{flex-wrap:wrap}.roster-member .attribute{padding:.65rem}.roster-member .attribute span{overflow-wrap:anywhere}.roster-member .actions{margin:.5rem 0}.snapshot-workspace{padding:1rem}}

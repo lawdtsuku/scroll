@@ -1,6 +1,6 @@
 # Consolidated storage and operations
 
-The dependency-free reducers in dist/core.js and dist/progress.js validate the campaign aggregate. IndexedDB saves each confirmed portion atomically with its transaction, journal, receipt and revision guard. Backups use scroll-backup version 3; versions 1 and 2 remain readable. State schema 1 retains legacy records, with validated scheduler and threshold extensions. Newer fields are not intended for old app builds.
+The dependency-free reducers in dist/core.js and dist/progress.js validate the campaign aggregate. IndexedDB saves each confirmed portion atomically with its transaction, journal, receipt and revision guard. Backups use scroll-backup version 4; versions 1, 2 and 3 remain readable. State schema 1 retains legacy records, with validated scheduler and threshold extensions. Newer fields are not intended for old app builds.
 
 ## Calendar
 
@@ -29,3 +29,6 @@ Threshold stages are ordered. Success totals and consecutive streaks are derived
 ## Sessions
 
 An open session has notes and advance_submitted. Session close checks that flag, independent of opening/closing day equality. Notes are journaled. Since-last-session is derived from journal timestamps after the latest closed session.
+
+## Owned roster and read-only snapshots
+See ROSTER-AND-SNAPSHOTS.md. Optional roster, roster_config and roster_level_thresholds fields preserve older campaigns. Snapshots are strictly projected owner-only data and stored in a separate viewer database; they never enter core campaign creation, restore or update reducers.
