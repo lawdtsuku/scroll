@@ -1,4 +1,4 @@
-# Scroll — consolidated build 0.4.0
+# Scroll — consolidated build 0.4.1
 
 Scroll holds campaign state, a day-triggered event schedule, character abilities and training progress. Rolls happen outside Scroll. Sage, shore-blue and cream; system fonts only; no external scripts or assets.
 
@@ -41,3 +41,6 @@ Run `npm test`. See VALIDATION.md for performed checks and outstanding deploymen
 Probabilistic cover is not a secrecy guarantee: independently pre-generated cover on about one-third of days obscures why a particular jump stopped, but does not promise identical statistical rates. Dates remain in IndexedDB and complete backup files; app views and diagnostic projections conceal them. This is not encryption or protection against inspecting storage.
 
 
+
+## 0.4.1 visual refinement
+Phone navigation stays at the bottom; switching screens returns to the top. Resource, ability and roster cards use clearer spacing, flat numeric surfaces and distinct sage/shore-blue status treatments. Snapshot loading folds away when data is present; tap Load your latest snapshot to replace it. The 0.4.0 data formats and operations are unchanged. Close every Scroll window and reopen after the offline update has downloaded.
