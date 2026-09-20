@@ -67,3 +67,34 @@ dialog{border-radius:15px;border-color:#acbda9;padding:1.6rem;box-shadow:none}di
 @media(prefers-reduced-motion:no-preference){button,.button-link{transition:background .16s,border-color .16s}details[open]>:not(summary){animation:unfurl .18s ease-out}}
 @media(max-width:720px){.play-grid>.right-column>.card:nth-child(2){order:0}}
 @media(max-width:720px){.nav button span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:100%}.nav button{height:62px;font-size:.75rem}}
+
+/* 0.4.2 — breathing room between copy, actions and tiles. */
+.workspace>.card+.card,.workspace>.card+details.card{margin-top:1.35rem}
+.stack{gap:1.35rem}.two-col{gap:1.35rem}.card>h2{margin-bottom:1.1rem}
+.card>.actions+p{margin-top:1rem}.card>input+p{margin-top:.85rem}
+.reference-reminder{display:grid;gap:.85rem;padding:1.15rem;line-height:1.65}
+.reference-reminder>p{margin:0}.reference-reminder>button{justify-self:start;margin:0;max-width:100%}
+.roster-controls>details{border-top:1px solid var(--line);padding-top:1rem;margin-top:1.1rem}
+.roster-controls>details>summary{min-height:44px;line-height:1.6}
+.roster-team{margin:1.65rem 0}.roster-team>h2{margin-bottom:1rem}
+.roster-empty{padding:1.35rem}.roster-empty p{margin:0;color:var(--muted)}
+.ability{margin:1rem 0;padding:1.1rem}.ability summary{gap:.85rem}
+.ability-slot{padding-top:1.5rem}.ability-slot>.eyebrow{margin-bottom:1.1rem;line-height:1.65}
+.ability-cost{line-height:1.65;-webkit-line-clamp:2}.ability-effect{line-height:1.65}
+.ability dl{row-gap:1rem;margin-top:1.2rem}.ability[open] summary{padding-bottom:1.1rem}
+.row .small{margin-top:.4rem;line-height:1.65}.row{gap:1rem}
+.section-head{flex-wrap:wrap}.section-head .text-link{font-size:.875rem}
+@media(max-width:720px){
+ .nav{grid-template-columns:.8fr 1fr 1.3fr .95fr 1fr 1.15fr;gap:.25rem;padding-inline:.4rem;border-top:2px solid #aabda1}
+ .nav button{padding:.35rem .05rem;height:66px;gap:.35rem;justify-content:flex-start}
+ .nav button span{overflow-wrap:normal;word-break:normal;hyphens:none;min-height:2.3em;line-height:1.15}
+ .workspace{padding-bottom:calc(6.8rem + env(safe-area-inset-bottom))}
+ .title-row{row-gap:1rem;margin-bottom:1.35rem}
+ .title-row:has(h1):has(+.reference-reminder){grid-template-columns:1fr}
+ .title-row:has(+.reference-reminder) select{justify-self:end;max-width:180px!important}
+ .card{padding:1.25rem 1.1rem}.resources{margin-top:1.25rem;margin-bottom:1.25rem}
+ .stats-row{padding-top:1.2rem}.stats-row p{margin-top:.7rem!important;line-height:1.65}
+ .ability{padding:1rem}.ability-name{line-height:1.35}.ability summary{gap:.85rem}
+ .reference-reminder>button{width:100%}.card>input+p{margin-top:.85rem}
+ .roster-controls>.actions{gap:.75rem}.roster-controls>p{margin-top:1rem;line-height:1.7}
+}
