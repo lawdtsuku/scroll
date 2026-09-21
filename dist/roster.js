@@ -32,7 +32,7 @@ export function validateMember(m,owners,{legacy=false}={}){
  return m;
 }
 export function validateRoster(s){
- if(s.roster_config!==undefined){exact(s.roster_config,['label'],'roster_config');text(s.roster_config.label,false,'roster_config.label');}
+ if(s.roster_config!==undefined){exact(s.roster_config,['label','hide_owner_stats'],'roster_config');if(s.roster_config.hide_owner_stats!==undefined&&typeof s.roster_config.hide_owner_stats!=='boolean')fail('roster_config.hide_owner_stats','must be boolean.');text(s.roster_config.label,false,'roster_config.label');}
  if(s.roster_level_thresholds!==undefined){const t=s.roster_level_thresholds;exact(t,Object.keys(t||{}),'roster_level_thresholds');for(const [k,v]of Object.entries(t)){if(!/^[1-9]\d*$/.test(k))fail('roster_level_thresholds','keys must be positive level numbers.');if(v!=='unknown')integer(v,0,'roster_level_thresholds value');}}
  if(s.roster!==undefined){unique(s.roster,'roster_id','roster');for(const m of s.roster)validateMember(m,s.characters.map(c=>c.character_id),{legacy:s.schema_version===1});}
 }
@@ -41,7 +41,7 @@ export const ROSTER_SCALAR_FIELDS=Object.freeze(['nickname','species','ability',
 const memberShape='member: complete object {roster_id, owner_character_id, status: active|boxed, species, nickname (may be empty), level, xp_total, resources:[{id:hp,current,max}], stats:[six {key,label,value}], moves:[move objects], ability, bond: named band, held_item:text|null, status_condition:null|{name,duration_remaining,duration_unit}, attributes:[{key,label,value:text|integer,note?}]}';
 const moveShape='move: {move_id,name,type,category,power:integer|text|null,accuracy:integer|text|null,pp_current,pp_max,effect}';
 export const ROSTER_OPERATION_SHAPES=Object.freeze({
- configure_roster:'Required: op, character_id, reason, label: text.',
+ configure_roster:'Required: op, character_id, reason, label: text. Optional: hide_owner_stats:boolean.',
  add_roster_member:'Required: op, character_id, reason, '+memberShape+'. New roster_id.',
  set_roster_member:'Required: op, character_id, reason, '+memberShape+'. Existing owned roster_id; preserve unchanged fields.',
  set_roster_status:'Required: op, character_id, reason, roster_id, status: active|boxed.',
@@ -81,7 +81,7 @@ export function applyRoster(s,o){
  if(!ROSTER_OPERATIONS.includes(o.op))return false;
  text(o.character_id,false,'character_id');text(o.reason,false,'reason');if(!s.characters.some(c=>c.character_id===o.character_id))fail('character_id','must identify an existing trainer.');
  const base=['op','character_id','reason'];
- if(o.op==='configure_roster'){exact(o,[...base,'label'],'operation');text(o.label,false,'label');s.roster_config={label:o.label};return true;}
+ if(o.op==='configure_roster'){exact(o,[...base,'label','hide_owner_stats'],'operation');text(o.label,false,'label');if(o.hide_owner_stats!==undefined&&typeof o.hide_owner_stats!=='boolean')fail('hide_owner_stats','must be boolean.');s.roster_config={...s.roster_config,label:o.label,...(o.hide_owner_stats!==undefined?{hide_owner_stats:o.hide_owner_stats}:{})};return true;}
  if(o.op==='set_roster_level_threshold'){exact(o,[...base,'level','cumulative_xp'],'operation');integer(o.level,1,'level');if(o.cumulative_xp!=='unknown')integer(o.cumulative_xp,0,'cumulative_xp');s.roster_level_thresholds={...s.roster_level_thresholds,[o.level]:o.cumulative_xp};return true;}
  s.roster??=[];
  if(o.op==='add_roster_member'||o.op==='set_roster_member'){

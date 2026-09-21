@@ -32,3 +32,10 @@ An open session has notes and advance_submitted. Session close checks that flag,
 
 ## Owned roster and read-only snapshots
 See ROSTER-AND-SNAPSHOTS.md. Optional roster, roster_config and roster_level_thresholds fields preserve older campaigns. Snapshots are strictly projected owner-only data and stored in a separate viewer database; they never enter core campaign creation, restore or update reducers.
+
+## 0.5.1 review and display settings
+Manual routine HP, PP, status, currency and inventory edits accumulate in a pending batch; review and confirm the batch once to save. Pending edits are not saved until confirmed. Protected operations each require their own approval, followed by one atomic save; no group approval substitutes for those approvals.
+
+`configure_roster` accepts optional boolean `hide_owner_stats`. Missing or false means show owner stats for every campaign. True hides owner resources, level, XP, attributes and abilities in Play, Character and the snapshot viewer. Character validation, stored fields and all DM operations remain unchanged; names, currency, inventory and roster remain visible. The separate `ability_slots_enabled` flag is unchanged. No campaign is selected automatically by genre or name.
+
+Snapshot version 3 includes `roster_label` (nonempty string) and `hide_owner_stats` (boolean), while retaining all required trainer fields. Versions 1 and 2 remain readable and default to Roster and false. The viewer uses the exported label. Re-export snapshots to carry new display settings to a second device. `species` remains generic free-form text.

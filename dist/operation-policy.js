@@ -16,18 +16,25 @@ export function assertAutomatable(operations) {
 }
 // Review authorization is process-local, one-use and bound to the exact preview.
 // A JSON field such as confirmed:true or source:"manual" is never authorization.
-const reviews=new WeakMap();
+const reviews=new WeakMap(),individualReviews=new WeakMap();
+export function authorizeIndividualReview(prepared,index,event){
+ if(!(event instanceof Event)||!event.isTrusted||event.type!=='click'||!(event.currentTarget instanceof HTMLButtonElement)||!event.currentTarget.isConnected||event.currentTarget.dataset.approveIndex!==String(index))throw Error('Confirm this operation with its own click or tap.');
+ const snapshot=JSON.stringify(prepared),old=individualReviews.get(prepared);const record=old?.snapshot===snapshot?old:{snapshot,indexes:new Set()};record.indexes.add(index);individualReviews.set(prepared,record);
+}
+
 export function authorizeUpdateReview(prepared,event) {
   if(!(event instanceof Event)||!event.isTrusted||event.type!=='click'||!(event.currentTarget instanceof HTMLButtonElement)||event.currentTarget.id!=='confirm-save'||!event.currentTarget.isConnected)throw new Error('Confirm the visible review with a click or tap.');
   if(prepared.importEnvelope)assertImportable(prepared.importEnvelope.operations);
-  if(protectedOperations(prepared.next.transactions.at(-1).operations).length&&!event.currentTarget.ownerDocument.querySelector('#protected-confirm')?.checked)throw Error('Explicit protected-operation approval is required.');
-  reviews.set(prepared,{snapshot:JSON.stringify(prepared),protectedApproved:!!event.currentTarget.ownerDocument.querySelector('#protected-confirm')?.checked});
+
+  const snapshot=JSON.stringify(prepared),individual=individualReviews.get(prepared);
+  reviews.set(prepared,{snapshot,indexes:new Set(individual?.snapshot===snapshot?individual.indexes:[])});
 }
-export function consumeUpdateReview(prepared) {
+export function consumeUpdateReview(prepared,requiredIndexes=prepared.next.transactions.at(-1).operations.flatMap((o,i)=>protectedOperations([o]).length?[i]:[])) {
   const reviewed=reviews.get(prepared);reviews.delete(prepared);
   if(!reviewed||reviewed.snapshot!==JSON.stringify(prepared))throw new Error('This update needs a new human review. Nothing was saved.');
   if(prepared.importEnvelope)assertImportable(prepared.importEnvelope.operations);
-  return reviewed.protectedApproved;
+  if(requiredIndexes.some(i=>!reviewed.indexes.has(i)))throw Error('Each protected operation needs its own confirmation. Nothing was saved.');
+  return requiredIndexes.length>0;
 }
 
 export function operationIdentity(value){if(Array.isArray(value))return '['+value.map(operationIdentity).join(',')+']';if(value&&typeof value==='object')return '{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+operationIdentity(value[k])).join(',')+'}';return JSON.stringify(value);}

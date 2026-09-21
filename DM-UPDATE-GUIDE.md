@@ -66,3 +66,10 @@ Owned roster (generic, trainer-scoped): configure_roster(label); add_roster_memb
 Trainer snapshots are exported by Scroll for one owner and loaded in its separate read-only viewer. They are not baselines, backups or DM updates. Never attach campaign history, other owners or hidden schedule data to a snapshot.
 
 0.5.0: Complete roster members require `attributes: [{key,label,value,note?}]`, with an empty list allowed. `set_roster_field(roster_id,field,value)` patches nickname/species/ability/bond/held_item only. `add_roster_move(roster_id,move)` appends a complete move with a new move_id. Both require character_id and reason. Copy DM instructions now includes the full ROSTER-AND-SNAPSHOTS.md guide offline. Validation identifies the operation index and expected shape, with field paths for roster validation.
+
+## 0.5.1 review and display settings
+Manual routine HP, PP, status, currency and inventory edits accumulate in a pending batch; review and confirm the batch once to save. Pending edits are not saved until confirmed. Protected operations each require their own approval, followed by one atomic save; no group approval substitutes for those approvals.
+
+`configure_roster` accepts optional boolean `hide_owner_stats`. Missing or false means show owner stats for every campaign. True hides owner resources, level, XP, attributes and abilities in Play, Character and the snapshot viewer. Character validation, stored fields and all DM operations remain unchanged; names, currency, inventory and roster remain visible. The separate `ability_slots_enabled` flag is unchanged. No campaign is selected automatically by genre or name.
+
+Snapshot version 3 includes `roster_label` (nonempty string) and `hide_owner_stats` (boolean), while retaining all required trainer fields. Versions 1 and 2 remain readable and default to Roster and false. The viewer uses the exported label. Re-export snapshots to carry new display settings to a second device. `species` remains generic free-form text.

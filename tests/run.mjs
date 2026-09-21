@@ -5,3 +5,5 @@ import './consolidated.test.mjs';
 import './roster.test.mjs';
 
 import './roster-upgrades.test.mjs';
+
+import './review-batching.test.mjs';
