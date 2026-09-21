@@ -3,7 +3,7 @@
   "version": 1,
   "campaign_id": "REPLACE-WITH-UNIQUE-CAMPAIGN-ID",
   "state": {
-    "schema_version": 1,
+    "schema_version": 2,
     "campaign_id": "REPLACE-WITH-UNIQUE-CAMPAIGN-ID",
     "lineage_id": "assigned-by-scroll-on-import",
     "display_name": "Example campaign — replace before importing",

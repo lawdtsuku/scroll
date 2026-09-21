@@ -73,7 +73,8 @@
         "ability": "Catch result",
         "bond": "Trusted",
         "held_item": null,
-        "status_condition": null
+        "status_condition": null,
+        "attributes": []
       }
     }
   ]

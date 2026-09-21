@@ -1,7 +1,23 @@
 import {consumeUpdateReview,assertImportable,protectedOperations,hasProtectedMutation} from './operation-policy.js';
-import {validateState} from './core.js';
+import {validateState,migrateState} from './core.js';
 let database;
-export function openDB(name='scroll'){return new Promise((resolve,reject)=>{const r=indexedDB.open(name,1);r.onupgradeneeded=()=>{r.result.createObjectStore('campaigns',{keyPath:'campaign_id'});r.result.createObjectStore('preferences',{keyPath:'key'});};r.onsuccess=()=>{database=r.result;database.onversionchange=()=>database.close();resolve();};r.onerror=()=>reject(r.error);r.onblocked=()=>reject(new Error('Close other Scroll tabs to update storage.'));});}
+export function openDB(name='scroll'){return new Promise((resolve,reject)=>{
+ let migrationError;const r=indexedDB.open(name,2);
+ r.onupgradeneeded=()=>{
+  const db=r.result,tx=r.transaction;
+  if(!db.objectStoreNames.contains('campaigns'))db.createObjectStore('campaigns',{keyPath:'campaign_id'});
+  if(!db.objectStoreNames.contains('preferences'))db.createObjectStore('preferences',{keyPath:'key'});
+  const store=tx.objectStore('campaigns'),read=store.getAll();
+  read.onsuccess=()=>{try{
+   // One version-change transaction: either every stored campaign upgrades or none do.
+   const changed=read.result.filter(s=>s.schema_version!==2).map(migrateState);
+   changed.forEach(s=>store.put(s));
+  }catch(e){migrationError=Error('Campaign storage upgrade could not complete. Existing data is unchanged. '+e.message);tx.abort();}};
+ };
+ r.onsuccess=()=>{database=r.result;database.onversionchange=()=>database.close();resolve();};
+ r.onerror=()=>reject(migrationError||r.error);
+ r.onblocked=()=>reject(new Error('Close other Scroll tabs to update storage.'));
+});}
 function read(store,key){return new Promise((resolve,reject)=>{const t=database.transaction(store,'readonly');const r=key===undefined?t.objectStore(store).getAll():t.objectStore(store).get(key);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
 export const allCampaigns=()=>read('campaigns');
 export const getCampaign=id=>read('campaigns',id);

@@ -1,7 +1,8 @@
-import {validateRoster,applyRoster} from './roster.js';
+import {validateRoster,applyRoster,operationError} from './roster.js';
+import {validateAttributes} from './attributes.js';
 import {createScheduler,validateScheduler,applyExtended,advance,safeDisplay,schedulerProjection,dayToken,visibleEvents,thresholdProgress} from './progress.js';
 import {assertImportable,operationIdentity} from './operation-policy.js';
-export const VERSION = 1;
+export const VERSION = 2;
 export const clone = value => structuredClone(value);
 export const uid = () => crypto.randomUUID();
 export const now = () => new Date().toISOString();
@@ -21,8 +22,7 @@ export function validateCharacter(c, campaign) {
   array(c.resources,'Resources'); unique(c.resources,'id');
   for(const r of c.resources) { keys(r,['id','current','max'],'resource'); if(!campaign.resources.some(d=>d.id===r.id)) fail('Unknown resource.'); num(r.current,'Current resource'); num(r.max,'Resource maximum',0); }
   if(c.resources.length !== campaign.resources.length) fail('Every character must have all configured resources.');
-  array(c.attributes,'Attributes'); unique(c.attributes,'key');
-  for(const a of c.attributes){ keys(a,['key','label','value','note'],'attribute'); str(a.key,'Attribute key'); str(a.label,'Attribute label'); if(typeof a.value==='number') num(a.value,'Attribute'); else str(a.value,'Attribute',true); if(a.note!==undefined) str(a.note,'Attribute note',true); }
+  validateAttributes(c.attributes,'character.attributes');
   keys(c.profile,['concept','motivation','notes','details'],'profile');
   for(const k of ['concept','motivation','notes']) if(c.profile[k]!==undefined) str(c.profile[k],k,true);
   if(c.profile.details!==undefined){ array(c.profile.details,'Profile details'); for(const d of c.profile.details){ keys(d,['key','value'],'detail'); str(d.key,'Detail key'); str(d.value,'Detail',true); } }
@@ -32,7 +32,7 @@ export function validateCharacter(c, campaign) {
 }
 export function validateState(s) {
   keys(s,['schema_version','campaign_id','lineage_id','display_name','system_label','current_day','day_label','day_zero_note','resources','currency','level_thresholds','ability_slots_enabled','current_revision','characters','journal','transactions','sessions','recovery','pending_migration','scheduler','thresholds','roster','roster_config','roster_level_thresholds'],'campaign');
-  if(s.schema_version!==VERSION) fail('Unsupported schema version.');
+  if(![1,VERSION].includes(s.schema_version)) fail('Unsupported schema version.');
   for(const k of ['campaign_id','lineage_id','display_name']) str(s[k],k);
   str(s.system_label,'System label',true); str(s.day_zero_note,'Calendar note',true);
   num(s.current_day,'Current day',0); num(s.current_revision,'Revision',0);
@@ -74,7 +74,7 @@ export function blankCharacter(campaign, name='New character'){
  return {character_id:uid(),campaign_id:campaign.campaign_id,name,level:1,xp_total:0,resources:campaign.resources.map(r=>({id:r.id,current:0,max:0})),currency_amount:0,attributes:[],profile:{concept:'',motivation:'',notes:'',details:[]},inventory:[],reference_revision:0,...(campaign.ability_slots_enabled?{ability_slots:[]}: {})};
 }
 export function newCampaign(config){
- const s={schema_version:1,campaign_id:uid(),lineage_id:uid(),display_name:config.display_name,system_label:config.system_label||'',current_day:config.current_day??1,day_label:config.day_label||{singular:'day',plural:'days'},day_zero_note:config.day_zero_note||'',resources:config.resources||[],currency:config.currency||{id:'currency',label:'Currency'},level_thresholds:config.level_thresholds||{},ability_slots_enabled:config.ability_slots_enabled??false,current_revision:0,characters:[],journal:[],transactions:[],sessions:[],recovery:[],pending_migration:null,scheduler:createScheduler(),thresholds:[]};
+ const s={schema_version:VERSION,campaign_id:uid(),lineage_id:uid(),display_name:config.display_name,system_label:config.system_label||'',current_day:config.current_day??1,day_label:config.day_label||{singular:'day',plural:'days'},day_zero_note:config.day_zero_note||'',resources:config.resources||[],currency:config.currency||{id:'currency',label:'Currency'},level_thresholds:config.level_thresholds||{},ability_slots_enabled:config.ability_slots_enabled??false,current_revision:0,characters:[],journal:[],transactions:[],sessions:[],recovery:[],pending_migration:null,scheduler:createScheduler(),thresholds:[]};
  s.characters=[blankCharacter(s,config.character_name||'New character')];return validateState(s);
 }
 const gameFields=['current_day','characters','sessions','level_thresholds','thresholds','roster','roster_config','roster_level_thresholds'];
@@ -83,10 +83,17 @@ function changes(before,after,path=''){
  if(before && after && typeof before==='object' && typeof after==='object' && !Array.isArray(before)&&!Array.isArray(after))return [...new Set([...Object.keys(before),...Object.keys(after)])].flatMap(k=>changes(before[k],after[k],path?`${path}.${k}`:k));
  return [{field:path,from:clone(before??null),to:clone(after??null)}];
 }
+export function migrateState(state){
+ validateState(state);
+ if(state.schema_version===VERSION)return state;
+ const next=clone(state);next.schema_version=VERSION;
+ for(const m of next.roster||[])if(m.attributes===undefined)m.attributes=[];
+ validateState(next);return next;
+}
 export function preview(state, operations, reason, source='manual'){
- validateState(state);str(reason,'Reason');array(operations,'Operations');if(!operations.length)fail('No changes to review.');if(!['manual','restore','dm_handoff'].includes(source))fail('Unsupported update source.');if(source==='dm_handoff')assertImportable(operations);
+ state=migrateState(state);str(reason,'Reason');array(operations,'Operations');if(!operations.length)fail('No changes to review.');if(!['manual','restore','dm_handoff'].includes(source))fail('Unsupported update source.');
  const next=clone(state), diffs=[];
- for(const supplied of operations){object(supplied,'Operation');const o={...supplied};if(o.effective_day!==undefined){num(o.effective_day,'Effective day',0);delete o.effective_day;} object(o,'Operation'); const before=clone(next); let c;
+ for(const [operationIndex,supplied] of operations.entries()){try{if(source==='dm_handoff')assertImportable([supplied]);object(supplied,'Operation');const o={...supplied};if(o.effective_day!==undefined){num(o.effective_day,'Effective day',0);delete o.effective_day;} object(o,'Operation'); const before=clone(next); let c;
    if(applyRoster(next,o)||applyExtended(next,o)){}else if(['set_resource_max','set_level','set_attribute'].includes(o.op)){
     str(o.character_id,'Character ID');str(o.reason,'Operation reason');c=next.characters.find(x=>x.character_id===o.character_id);if(!c)fail('Unknown character.');
     if(o.op==='set_resource_max'){keys(o,['op','character_id','resource','value','reason'],'operation');num(o.value,'Resource maximum',0);const r=c.resources.find(r=>r.id===o.resource);if(!r)fail('Unknown resource for this character.');r.max=o.value;}
@@ -107,7 +114,7 @@ export function preview(state, operations, reason, source='manual'){
     keys(o,['op'],'operation');if(next.sessions.some(s=>s.state==='open'))fail('A session is already open.');next.sessions.push({session_id:uid(),campaign_id:next.campaign_id,opened_at:now(),closed_at:null,opening_day:next.current_day,closing_day:null,state:'open',notes:'',advance_submitted:false});
    }else if(o.op==='close_session'||o.op==='abandon_session'){
     keys(o,['op'],'operation');const session=next.sessions.find(s=>s.state==='open');if(!session)fail('No open session.');session.closed_at=now();session.closing_day=next.current_day;session.state=o.op==='close_session'?'closed':'abandoned';
-   }else fail(`Unsupported operation: ${o.op}.`);
+   }else fail('Unsupported operation.');
    if(!same(before.scheduler,next.scheduler))diffs.push({character_id:null,entity:'campaign',entity_id:next.campaign_id,field:'scheduler',from:schedulerProjection(before),to:{...schedulerProjection(next),change:o.op},reason:['schedule_event','amend_event_date','configure_migrated_events'].includes(o.op)?'imported':o.reason||reason});
    if(c)validateCharacter(next.characters.find(x=>x.character_id===c.character_id),next);
    for(const field of gameFields){
@@ -124,6 +131,7 @@ export function preview(state, operations, reason, source='manual'){
       for(const char of next.characters){const old=before.characters.find(x=>x.character_id===char.character_id);for(const d of changes(old,char))diffs.push({...d,field:d.field||'character_created',character_id:char.character_id,entity:'character',entity_id:char.character_id,reason:o.reason||reason});}
     }else for(const d of changes(before[field],next[field],field))diffs.push({...d,character_id:null,entity:'campaign',entity_id:next.campaign_id,reason:o.reason||reason});
    }
+ }catch(err){throw operationError(err,operationIndex,supplied);}
  }
  if(!diffs.length)fail('Nothing changed.');
  return finalize(state,next,operations,reason,source,diffs);
@@ -134,13 +142,13 @@ function finalize(state,next,operations,reason,source,diffs){
  next.transactions.push(t);next.current_revision++;validateState(next);
  return {campaign_id:state.campaign_id,base_revision:state.current_revision,lineage_id:state.lineage_id,next,diffs,reason};
 }
-export function prepareCreation(state,reason){state=clone(state);if(!state.scheduler){state.scheduler=createScheduler();state.thresholds=clone(state.pending_migration?.thresholds||[]);}validateState(state);str(reason,'Reason');if(state.current_revision!==0||state.journal.length||state.transactions.length)fail('Not a new baseline.');return finalize(state,clone(state),[{op:'establish_baseline'}],reason,'restore',[{character_id:null,entity:'campaign',entity_id:state.campaign_id,field:'opening_baseline',from:null,to:clone(state)}]);}
-export function backup(state){validateState(state);return {format:'scroll-backup',version:4,campaign_id:state.campaign_id,backup_id:uid(),exported_at:now(),state:clone(state)};}
+export function prepareCreation(state,reason){state=clone(migrateState(state));if(!state.scheduler){state.scheduler=createScheduler();state.thresholds=clone(state.pending_migration?.thresholds||[]);}validateState(state);str(reason,'Reason');if(state.current_revision!==0||state.journal.length||state.transactions.length)fail('Not a new baseline.');return finalize(state,clone(state),[{op:'establish_baseline'}],reason,'restore',[{character_id:null,entity:'campaign',entity_id:state.campaign_id,field:'opening_baseline',from:null,to:clone(state)}]);}
+export function backup(state){state=migrateState(state);return {format:'scroll-backup',version:5,campaign_id:state.campaign_id,backup_id:uid(),exported_at:now(),state:clone(state)};}
 export function parseBackup(text){
- if(text.length>20*1024*1024)fail('Backup exceeds the 20 MB import limit.');const b=JSON.parse(text);keys(b,['format','version','campaign_id','backup_id','exported_at','state'],'backup');if(b.format!=='scroll-backup'||![1,2,3,4].includes(b.version))fail('Choose a supported Scroll backup, not a session update or migration document.');str(b.backup_id,'Backup ID');str(b.exported_at,'Export date');validateState(b.state);if(b.version===1&&b.state.transactions.some(t=>t.update))fail('Version 1 backups cannot contain import receipts.');if(b.campaign_id!==b.state.campaign_id)fail('Backup campaign identity does not match.');return b;
+ if(text.length>20*1024*1024)fail('Backup exceeds the 20 MB import limit.');const b=JSON.parse(text);keys(b,['format','version','campaign_id','backup_id','exported_at','state'],'backup');if(b.format!=='scroll-backup'||![1,2,3,4,5].includes(b.version))fail('Choose a supported Scroll backup, not a session update or migration document.');str(b.backup_id,'Backup ID');str(b.exported_at,'Export date');b.state=migrateState(b.state);if(b.version===1&&b.state.transactions.some(t=>t.update))fail('Version 1 backups cannot contain import receipts.');if(b.campaign_id!==b.state.campaign_id)fail('Backup campaign identity does not match.');return b;
 }
 export function prepareRestore(b,current,reason){
- parseBackup(JSON.stringify(b));str(reason,'Restore reason');if(current&&current.campaign_id!==b.campaign_id)fail('Restore target mismatch.');const next=clone(b.state);const previous=next.lineage_id;next.lineage_id=uid();next.recovery.push({restored_at:now(),reason,backup_id:b.backup_id,previous_lineage:previous,new_lineage:next.lineage_id});
+ b=parseBackup(JSON.stringify(b));str(reason,'Restore reason');if(current&&current.campaign_id!==b.campaign_id)fail('Restore target mismatch.');const next=clone(b.state);const previous=next.lineage_id;next.lineage_id=uid();next.recovery.push({restored_at:now(),reason,backup_id:b.backup_id,previous_lineage:previous,new_lineage:next.lineage_id});
  const p=finalize(b.state,next,[{op:'restore_backup',backup_id:b.backup_id}],reason,'restore',[{character_id:null,entity:'campaign',entity_id:next.campaign_id,field:'lineage_id',from:previous,to:next.lineage_id}]);
  return {...p,base_revision:current?.current_revision??null,lineage_id:current?.lineage_id??null,diffs:[{character_id:null,entity:'campaign',entity_id:next.campaign_id,field:'Restore complete campaign',from:current?`${current.display_name}, day ${current.current_day}, ${current.journal.length} journal entries`:'No saved campaign',to:`${next.display_name}, day ${next.current_day}, ${b.state.journal.length} imported journal entries; new lineage`}]};
 }

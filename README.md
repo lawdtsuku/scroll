@@ -1,4 +1,4 @@
-# Scroll — consolidated build 0.4.2
+# Scroll — consolidated build 0.5.0
 
 Scroll holds campaign state, a day-triggered event schedule, character abilities and training progress. Rolls happen outside Scroll. Sage, shore-blue and cream; system fonts only; no external scripts or assets.
 
@@ -46,3 +46,6 @@ Probabilistic cover is not a secrecy guarantee: independently pre-generated cove
 Phone navigation stays at the bottom; switching screens returns to the top. Resource, ability and roster cards use clearer spacing, flat numeric surfaces and distinct sage/shore-blue status treatments. Snapshot loading folds away when data is present; tap Load your latest snapshot to replace it. The 0.4.0 data formats and operations are unchanged. Close every Scroll window and reopen after the offline update has downloaded.
 
 0.4.2 responds to iPhone spacing feedback: whole-word bottom navigation labels, separated reminder copy/actions, clearer gaps between reference cards and ability details, and a tiled empty roster state. Data protocols are unchanged.
+
+## 0.5.0 roster upgrade
+Adds generic member attributes with automatic migration of existing saves, scalar member patches, append-only move creation, indexed validation errors with expected shapes, and a visible next-level XP warning without automatic leveling. Copy DM instructions includes the full offline roster guide. Campaign schema is now 2, backups 5, and trainer snapshots 2; legacy formats migrate on reading. Edit ROSTER-AND-SNAPSHOTS.md then run `npm run build:guide` to rebuild its bundled copy.

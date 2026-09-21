@@ -98,3 +98,9 @@ dialog{border-radius:15px;border-color:#acbda9;padding:1.6rem;box-shadow:none}di
  .reference-reminder>button{width:100%}.card>input+p{margin-top:.85rem}
  .roster-controls>.actions{gap:.75rem}.roster-controls>p{margin-top:1rem;line-height:1.7}
 }
+
+/* Generic roster annotations stay flat and readable on narrow screens. */
+.roster-member .roster-attributes{grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr));margin-block:1.2rem}
+.roster-attributes .attribute strong{font-family:var(--body-font,system-ui,sans-serif);font-size:1.1rem;line-height:1.45;overflow-wrap:anywhere}
+.threshold-reached{padding:.8rem 1rem;background:#e5eddd;border-left:4px solid #486c54;border-radius:.4rem;color:#253f32;font-weight:650}
+.error{overflow-wrap:anywhere}

@@ -1,10 +1,11 @@
 {
   "name": "scroll-foundation",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "scripts": {
     "start": "node serve.mjs",
-    "test": "node tests/run.mjs"
+    "test": "node tests/run.mjs",
+    "build:guide": "node scripts/build-roster-guide.mjs"
   }
 }

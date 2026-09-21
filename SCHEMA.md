@@ -1,6 +1,6 @@
 # Consolidated storage and operations
 
-The dependency-free reducers in dist/core.js and dist/progress.js validate the campaign aggregate. IndexedDB saves each confirmed portion atomically with its transaction, journal, receipt and revision guard. Backups use scroll-backup version 4; versions 1, 2 and 3 remain readable. State schema 1 retains legacy records, with validated scheduler and threshold extensions. Newer fields are not intended for old app builds.
+The dependency-free reducers in dist/core.js and dist/progress.js validate the campaign aggregate. IndexedDB saves each confirmed portion atomically with its transaction, journal, receipt and revision guard. Backups use scroll-backup version 5; versions 1–4 remain readable. State schema 2 requires roster attributes. Schema 1 saves migrate by backfilling missing member attributes without changing game facts, identity, revision, history or frozen scheduler data. IndexedDB version 2 upgrades existing campaigns atomically. Newer fields are not intended for old app builds.
 
 ## Calendar
 
