@@ -88,3 +88,14 @@ Archived 0.4.1 before changes. Reviewed supplied iPhone screenshots. Synthetic b
 
 ## 0.5.1
 77 automated checks pass. Browser checks on an isolated fictional campaign verified a two-item routine batch remains unsaved until one confirmation, individual protected approvals cannot be skipped or shared across two operations, and hiding owner stats preserves visible currency/inventory and roster stats. Character fields and updates remain validated in automated checks; legacy snapshots default to visible owner stats. Physical phone verification remains with the user.
+
+# Scroll 0.5.2 — ordered task verification
+
+1. Added chain_records_pending to state summaries and new import receipts. Persistent scheduled trigger_chain count, no dates, no day filtering. Existing card logic and frozen token stream unchanged. Tests: 79/79; task1-tests.txt. Coverage includes day independence, resolved exclusion, post-update receipt count, duplicate receipt stability, legacy receipts, invalid count rejection.
+2. Added a four-step numbered exchange checklist with Done/Pending/Needs attention states and All done. Checklist is a device preference scoped by campaign, lineage and revision. Actual saved import completes step 2; external receipt paste is explicitly acknowledged by the player. Handoff attention requires another state copy and visit before completion. Tests: 81/81; task2-tests.txt. Browser: synthetic campaign copy state/instructions, actual currency import and confirmation, literal receipt with chain_records_pending:0, paste acknowledgement and handoff visit reached all four Done.
+3. Unified both export buttons as Copy state for DM. Added current-token explanation and Checks a typed token for typos under Verify token. Tests: 81/81; task3-tests.txt. Browser DOM verified exact wording.
+4. Mobile-first spacing, flat card contrast, button prominence, numbered step tiles, textual state colors; workflow appears before import form on phones. No campaign behavior changes. Tests: 81/81; task4-tests.txt. Browser Play and Updates checked at 375x812; document scrollWidth 360 with innerWidth 375, no horizontal overflow. Reviewed screenshot of steps and full DOM showing all four Done. Offline cache includes exchange.js and is bumped to v17.
+
+Limits: browser checks used an isolated fictional campaign, not the user's phone or production campaign. Physical iPhone rendering and its cache activation remain a device check. Scroll cannot observe messages pasted to another app; the checklist requires honest manual acknowledgment. Old immutable receipts are not rewritten, so they may omit the newly added count.
+
+No existing schema fields renamed; no token generation or scheduler trigger behavior changed. Pre-edit checkpoint: outputs/checkpoints/scroll-before-handoff-stepper.zip.

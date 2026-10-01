@@ -1,4 +1,12 @@
-# Scroll — consolidated build 0.5.0
+# Scroll — consolidated build 0.5.2
+
+## 0.5.2 handoff workflow
+
+State summaries and new import receipts include `chain_records_pending`, the persistent count of scheduled trigger-chain records, with no dates or day-dependent filtering. Historical receipts remain unchanged and readable.
+
+DM updates now has a four-step checklist: copy state/instructions, confirm the import, return its receipt, then check Play's Day handoff and copy state again if attention is needed. External pasting and the final check use explicit player acknowledgments. Checklist preferences are local to the device, campaign, lineage and revision; they are not campaign data. “All done” describes this exchange, not event resolution.
+
+Both state-copy actions are named “Copy state for DM.” Verify token explains that it checks typed tokens for typos. Play and Updates use clearer spacing, flat card surfaces and labeled pending/done/attention states. Token generation, event scheduling and protected confirmations are unchanged.
 
 Scroll holds campaign state, a day-triggered event schedule, character abilities and training progress. Rolls happen outside Scroll. Sage, shore-blue and cream; system fonts only; no external scripts or assets.
 
