@@ -1,4 +1,4 @@
-const CACHE='scroll-consolidated-v18';
+const CACHE='scroll-consolidated-v19';
 const ASSETS=['./','./index.html','./style.css','./app.js','./boot.js','./core.js','./db.js','./updates.js','./progress.js','./operation-policy.js','./review-policy.js','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png','./scroll-dm-template-kit.zip','./attributes.js','./roster-guide.js','./roster.js','./roster-view.js','./snapshot.js','./snapshot-store.js','./snapshot-app.js','./snapshot.html'];
 ASSETS.push('./exchange.js','./character-display.js','./attention.js');
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));

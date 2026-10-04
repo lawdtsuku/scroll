@@ -6,7 +6,7 @@ Operator and snapshot viewer share owner display components and roster cards. Mo
 
 Day handoff is first on Play. An empty handoff is compact; acknowledged standing chains remain visible and quiet. Acknowledgments store only pending IDs in device preferences, scoped to campaign and lineage. New pending IDs relight, decreases do not, and empty clears the acknowledgment. Exports always retain the true chain count. Play, DM updates and Character use dots with accessible needs-attention text. XP reaching the immediate next known character threshold gets a per-owner notice but no badge, and is hidden with owner stats.
 
-Visible build label: Scroll 0.6.0 · character-display-1. Offline cache v18 includes the two new modules. Worker update/activation behavior is unchanged.
+Visible build label: Scroll 0.6.0 · character-display-2. Offline cache v19 includes the two new modules. Worker update/activation behavior is unchanged.
 
 The only export change is `characters[].attributes` in the version-1 state summary, preserving each existing `{key,label,value,note}` record, even with owner stats hidden. Receipts, references and snapshots are unchanged. The summary now supplies the attribute keys and notes needed to prepare set_attribute; its required reason/note and all operation contracts remain unchanged. No optional app_version field was added.
 

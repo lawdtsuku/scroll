@@ -181,3 +181,5 @@ dialog{border-radius:15px;border-color:#acbda9;padding:1.6rem;box-shadow:none}di
  .play-grid .big-number{font-size:clamp(2.4rem,9vw,3.5rem);line-height:1.25}.play-grid .big-number span{font-size:1rem}
  #day-handoff>button{width:100%;min-height:48px}.token-check button{min-height:48px}
 }
+
+.handoff-empty{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:.8rem;padding:.9rem!important}.handoff-empty>details>summary{min-height:44px;cursor:pointer;font-size:.9rem;line-height:1.5;font-weight:650;padding:.4rem 0}.handoff-empty>details[open]{grid-column:1/-1}#day-handoff.handoff-empty>button[data-action="summary"]{margin:0;font-size:.8rem;min-height:44px;padding:.65rem;max-width:8rem}
