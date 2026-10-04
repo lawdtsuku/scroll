@@ -1,0 +1,13 @@
+# Scroll 0.6.0 — character displays and visible handoffs
+
+Character now groups vitals, attributes, slot-based abilities and training. Cost and Range remain literal and visible; the effect preview is two lines with More. Native whole-row disclosures replace previews with full text. Per-group expansion is device-only. Empty slots are grouped. Training uses one-based visible stages and disclosed technical identifiers; completed training keeps rare DC edits under Manage.
+
+Operator and snapshot viewer share owner display components and roster cards. Move Power, Acc and PP are visible before expansion; PP at or below one quarter of maximum (at least one) receives a Low PP display flag. No values are spent or calculated from text. Snapshots lack character XP boundaries and training thresholds, so unavailable progress is not invented.
+
+Day handoff is first on Play. An empty handoff is compact; acknowledged standing chains remain visible and quiet. Acknowledgments store only pending IDs in device preferences, scoped to campaign and lineage. New pending IDs relight, decreases do not, and empty clears the acknowledgment. Exports always retain the true chain count. Play, DM updates and Character use dots with accessible needs-attention text. XP reaching the immediate next known character threshold gets a per-owner notice but no badge, and is hidden with owner stats.
+
+Visible build label: Scroll 0.6.0 · character-display-1. Offline cache v18 includes the two new modules. Worker update/activation behavior is unchanged.
+
+The only export change is `characters[].attributes` in the version-1 state summary, preserving each existing `{key,label,value,note}` record, even with owner stats hidden. Receipts, references and snapshots are unchanged. The summary now supplies the attribute keys and notes needed to prepare set_attribute; its required reason/note and all operation contracts remain unchanged. No optional app_version field was added.
+
+Validation: 90 local tests pass (nine new tests). The old summary-omits-attributes assertion was updated only for the expressly approved additive field. Exact before/after export comparisons cover hidden-owner settings on and off. Browser tests at 375px cover full-row toggles, expand/collapse all, quiet completed stages, technical disclosures, roster moves, snapshots, hidden owner stats, badge lit/clear states, and chain unhandled/handled/relit. A 24px root font simulates enlarged text; it is not an actual iOS Dynamic Type test. No horizontal overflow was observed in these fixtures. Real copy-dialog output before/after chain acknowledgment is byte-identical with count 1. Physical iPhone rendering and installation/cache activation were not verified.

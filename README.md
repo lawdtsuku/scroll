@@ -1,4 +1,4 @@
-# Scroll — consolidated build 0.5.2
+# Scroll — consolidated build 0.6.0
 
 ## 0.5.2 handoff workflow
 
