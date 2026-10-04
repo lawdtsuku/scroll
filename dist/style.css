@@ -105,6 +105,25 @@ dialog{border-radius:15px;border-color:#acbda9;padding:1.6rem;box-shadow:none}di
 .threshold-reached{padding:.8rem 1rem;background:#e5eddd;border-left:4px solid #486c54;border-radius:.4rem;color:#253f32;font-weight:650}
 .error{overflow-wrap:anywhere}
 
+/* Shared character and roster displays: full-row native disclosure targets. */
+.ability-display summary,.move-display summary{display:flex;flex-direction:column;align-items:stretch;gap:.8rem;padding:1rem;min-height:44px;touch-action:manipulation}
+.ability-display summary::before,.move-display summary::before{content:none}
+.ability-display,.move-display{padding:0;overflow-wrap:anywhere;background:#fffefa}
+.ability-display dl,.move-display dl{padding:0 1rem 1rem;line-height:1.7}
+.ability-preview,.ability-facts{display:grid;gap:.75rem}.ability-facts>span{display:block;white-space:pre-wrap}
+.ability-facts b{display:block;color:#325347}.effect-preview{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;line-height:1.65}
+.more-cue,.collapse-cue{color:#295969;font-weight:650;font-size:.9rem}.collapse-cue{display:none}
+.ability-display[open] .ability-preview,.move-display[open] .more-cue{display:none}
+.ability-display[open] .collapse-cue,.move-display[open] .collapse-cue{display:block}
+.ability-slot .actions{gap:.75rem;margin:1rem 0}.ability-slot button{min-height:44px}
+.character-attributes{grid-template-columns:repeat(3,minmax(0,1fr));gap:.9rem}.attribute{min-width:0;overflow-wrap:anywhere;line-height:1.6}
+.move-facts{display:flex;flex-wrap:wrap;gap:.7rem 1.2rem;background:#edf4f1;padding:.75rem;border-radius:5px}.low-pp{color:#754814;background:#f8ecd4;padding:.2rem .35rem}
+.threshold summary,.technical summary{padding:.8rem 0;min-height:44px;cursor:pointer}.threshold.is-complete{background:#edf1e9;color:#51604f;padding:.5rem .75rem}.technical{font-size:.85rem;overflow-wrap:anywhere}.threshold>p{line-height:1.7}
+.empty-slots{padding:1rem 0;border-top:1px solid var(--line)}.build-label{font:500 .8rem/1.6 system-ui,sans-serif;color:#4d6258;margin:1rem 0}
+.nav button{position:relative}.attention-dot{position:absolute;top:.3rem;right:.3rem;width:.55rem;height:.55rem;border-radius:50%;background:#875514;border:1px solid #fffefa}
+.handoff-active{border-left:5px solid #977239!important}.handoff-quiet{background:#edf2e9!important}.handoff-quiet h2{font-size:1.1rem;line-height:1.5}.handoff-tools summary{cursor:pointer;min-height:44px;padding:.65rem 0}
+.vitals .resource{background:#fffefa}.vitals .stats-row{margin-top:1rem}.vitals{margin-bottom:1.4rem}
+@media(max-width:430px){.character-attributes{grid-template-columns:repeat(2,minmax(0,1fr))}.ability-display summary,.move-display summary{padding:.85rem}.ability-display dl,.move-display dl{grid-template-columns:1fr}.ability-name{font-size:1.4rem}}
 /* Handoff workflow polish: flat readable surfaces, sage / shore / cream. */
 .updates-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:1.6rem;align-items:start}
 .updates-layout>.stack,.updates-flow{min-width:0}

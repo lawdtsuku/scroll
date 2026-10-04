@@ -9,3 +9,6 @@ import './roster-upgrades.test.mjs';
 import './review-batching.test.mjs';
 import './handoff.test.mjs';
 import './exchange.test.mjs';
+import './character-display.test.mjs';
+
+
