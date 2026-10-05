@@ -207,3 +207,5 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area
 
 @media(max-width:720px){.nav button:not([data-tab="roster"]) span{white-space:normal;text-overflow:clip;overflow-wrap:normal;word-break:normal}.nav button[data-tab="roster"] span{white-space:nowrap;text-overflow:ellipsis}}
 .step-content>.notice{margin-top:1.2rem}
+
+.update-ready{margin:calc(.8rem + env(safe-area-inset-top)) .9rem .8rem;position:relative;z-index:6}.update-ready[hidden]{display:none}.update-ready p{margin:.5rem 0}.update-ready button{margin-top:.6rem}

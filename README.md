@@ -1,4 +1,4 @@
-# Scroll — consolidated build 0.6.1
+# Scroll — consolidated build 0.6.2
 
 ## 0.5.2 handoff workflow
 
@@ -70,3 +70,11 @@ Snapshot version 3 includes `roster_label` (nonempty string) and `hide_owner_sta
 DM updates keeps one step open at a time, with paste/upload controls in step 2. Review remains the existing dialog so approval and save handlers are unchanged. See [release notes](RELEASE-0.6.1.md).
 
 For the optional WebKit UI audit, install Playwright in a separate test environment, install its WebKit browser, and set `SCROLL_PLAYWRIGHT_MODULE` to that environment’s Playwright module if it is not on the normal module path. From this project root run `node scripts/warm-evidence-server.mjs` in one terminal, then `node tests/warm-green.browser.mjs` in another. It uses isolated synthetic data on ports 4188/4189 and writes `warm-evidence/`. `SCROLL_AUDIT_OUTPUT` overrides that directory; `SCROLL_BEFORE_DIST` can point to the previous release for before captures. This optional test runtime is never part of Scroll’s offline application.
+
+## 0.6.2: export version and safe update notice
+
+New state summaries and receipts carry optional `app_version` metadata; historical receipts are unchanged. See [export contract](EXPORT-VERSION-CONTRACT.md). The persistent Update ready panel requires a user click and blocks while previews, edits or saves are pending, or another Scroll window is open. See [activation design](UPDATE-READY-DESIGN.md). The first upgrade from 0.6.1 still requires closing all Scroll windows because that cached version lacks this panel.
+
+[Snapshot threshold report](SNAPSHOT-THRESHOLDS-REPORT.md) describes the owner-only display data a future version would need. It does not change the snapshot format. The bundled DM template kit remains unchanged.
+
+For the optional activation browser test, use the same Playwright setup as above. Run `node scripts/update-ready-server.mjs` from this project root, then `node tests/update-ready.browser.mjs`. It uses synthetic data on port 4191, test-only worker generations, Chrome and WebKit, and writes `update-ready-evidence/` (override with `SCROLL_UPDATE_EVIDENCE`).

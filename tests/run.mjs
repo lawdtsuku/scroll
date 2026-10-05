@@ -12,3 +12,4 @@ import './exchange.test.mjs';
 import './character-display.test.mjs';
 
 import './summary-attributes.test.mjs';
+import './optional-updates.test.mjs';
