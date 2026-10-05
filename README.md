@@ -1,4 +1,4 @@
-# Scroll — consolidated build 0.6.0
+# Scroll — consolidated build 0.6.1
 
 ## 0.5.2 handoff workflow
 
@@ -8,7 +8,7 @@ DM updates now has a four-step checklist: copy state/instructions, confirm the i
 
 Both state-copy actions are named “Copy state for DM.” Verify token explains that it checks typed tokens for typos. Play and Updates use clearer spacing, flat card surfaces and labeled pending/done/attention states. Token generation, event scheduling and protected confirmations are unchanged.
 
-Scroll holds campaign state, a day-triggered event schedule, character abilities and training progress. Rolls happen outside Scroll. Sage, shore-blue and cream; system fonts only; no external scripts or assets.
+Scroll holds campaign state, a day-triggered event schedule, character abilities and training progress. Rolls happen outside Scroll. Warm Moss green and cream; system fonts only; no external scripts or assets.
 
 Owned rosters and separate read-only trainer snapshots are available in 0.4.0. On the operator phone, open Roster, select a trainer, and choose **Export snapshot for [name]**. On the receiving phone, open **Open trainer snapshot viewer**, choose the file, and tap **Load snapshot**. Each new import replaces the previous snapshot; it never creates or modifies a campaign. See [ROSTER-AND-SNAPSHOTS.md](ROSTER-AND-SNAPSHOTS.md) for fields, operations and the two-phone workflow.
 
@@ -64,3 +64,9 @@ Manual routine HP, PP, status, currency and inventory edits accumulate in a pend
 `configure_roster` accepts optional boolean `hide_owner_stats`. Missing or false means show owner stats for every campaign. True hides owner resources, level, XP, attributes and abilities in Play, Character and the snapshot viewer. Character validation, stored fields and all DM operations remain unchanged; names, currency, inventory and roster remain visible. The separate `ability_slots_enabled` flag is unchanged. No campaign is selected automatically by genre or name.
 
 Snapshot version 3 includes `roster_label` (nonempty string) and `hide_owner_stats` (boolean), while retaining all required trainer fields. Versions 1 and 2 remain readable and default to Roster and false. The viewer uses the exported label. Re-export snapshots to carry new display settings to a second device. `species` remains generic free-form text.
+
+## 0.6.1 warm-green-1
+
+DM updates keeps one step open at a time, with paste/upload controls in step 2. Review remains the existing dialog so approval and save handlers are unchanged. See [release notes](RELEASE-0.6.1.md).
+
+For the optional WebKit UI audit, install Playwright in a separate test environment, install its WebKit browser, and set `SCROLL_PLAYWRIGHT_MODULE` to that environment’s Playwright module if it is not on the normal module path. From this project root run `node scripts/warm-evidence-server.mjs` in one terminal, then `node tests/warm-green.browser.mjs` in another. It uses isolated synthetic data on ports 4188/4189 and writes `warm-evidence/`. `SCROLL_AUDIT_OUTPUT` overrides that directory; `SCROLL_BEFORE_DIST` can point to the previous release for before captures. This optional test runtime is never part of Scroll’s offline application.

@@ -4,5 +4,5 @@ export const pendingChainIds=s=>(s.scheduler?.events||[]).filter(e=>e.selection_
 export function reconcileAcknowledgement(s,ids=[]){const pending=new Set(pendingChainIds(s));return Array.isArray(ids)?ids.filter(id=>pending.has(id)):[];}
 export function handoffState(s,acknowledged=[]){const chains=pendingChainIds(s),known=new Set(acknowledged);return {events:visibleEvents(s),chains,unhandled:chains.some(id=>!known.has(id)),remainder:!!s.scheduler?.remainder};}
 export const needsHandoff=h=>h.events.length>0||h.unhandled||h.remainder;
-export function tabBadges(s,ack,exchange,referencePending){const attention=needsHandoff(handoffState(s,ack));return {play:attention,updates:!exchangeStatus(exchange||newExchange(s),attention).allDone,reference:referencePending};}
+export function tabBadges(s,ack,exchange,referencePending){const attention=needsHandoff(handoffState(s,ack)),w=exchange||newExchange(s),started=!!(w.copied_state||w.copied_instructions||w.update_id||w.receipt_pasted);return {play:attention,updates:started&&!exchangeStatus(w,attention).allDone,reference:referencePending};}
 export const ownerThresholdReached=(s,c)=>s.roster_config?.hide_owner_stats!==true&&typeof s.level_thresholds?.[String(c.level+1)]==='number'&&c.xp_total>=s.level_thresholds[String(c.level+1)];

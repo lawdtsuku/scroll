@@ -1,5 +1,5 @@
-const CACHE='scroll-consolidated-v19';
-const ASSETS=['./','./index.html','./style.css','./app.js','./boot.js','./core.js','./db.js','./updates.js','./progress.js','./operation-policy.js','./review-policy.js','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png','./scroll-dm-template-kit.zip','./attributes.js','./roster-guide.js','./roster.js','./roster-view.js','./snapshot.js','./snapshot-store.js','./snapshot-app.js','./snapshot.html'];
+const CACHE='scroll-consolidated-v20';
+const ASSETS=['./','./index.html','./style.css','./palette.css','./app.js','./boot.js','./core.js','./db.js','./updates.js','./progress.js','./operation-policy.js','./review-policy.js','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png','./scroll-dm-template-kit.zip','./attributes.js','./roster-guide.js','./roster.js','./roster-view.js','./snapshot.js','./snapshot-store.js','./snapshot-app.js','./snapshot.html'];
 ASSETS.push('./exchange.js','./character-display.js','./attention.js');
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>/^scroll-(?:m[12]-|consolidated-)/.test(k)&&k!==CACHE).map(k=>caches.delete(k))))));
