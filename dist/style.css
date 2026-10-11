@@ -209,3 +209,15 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area
 .step-content>.notice{margin-top:1.2rem}
 
 .update-ready{margin:calc(.8rem + env(safe-area-inset-top)) .9rem .8rem;position:relative;z-index:6}.update-ready[hidden]{display:none}.update-ready p{margin:.5rem 0}.update-ready button{margin-top:.6rem}
+
+/* Reference handoff actions remain visible, including on owner-hidden campaigns. */
+.reference-reminder { display: grid; gap: .8rem; }
+.reference-reminder p { margin: 0; }
+.reference-export-row { display: flex; flex-wrap: wrap; align-items: center; gap: .65rem 1rem; }
+.reference-export-row > span { flex: 1 1 10rem; font-weight: 600; overflow-wrap: anywhere; }
+.reference-export-row button, .character-reference button { min-height: 44px; white-space: normal; }
+.reference-management { margin-top: 1.25rem; border-top: 1px solid var(--line); padding-top: .75rem; }
+.reference-management > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+.reference-management > summary::before { content: '＋'; margin-right: .6rem; }
+.reference-management[open] > summary::before { content: '−'; }
+@media(max-width: 480px) { .reference-export-row button, .character-reference > .actions > button { width: 100%; } }
