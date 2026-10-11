@@ -221,3 +221,8 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area
 .reference-management > summary::before { content: '＋'; margin-right: .6rem; }
 .reference-management[open] > summary::before { content: '−'; }
 @media(max-width: 480px) { .reference-export-row button, .character-reference > .actions > button { width: 100%; } }
+
+.exchange-skip { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+.exchange-skip p { margin: .65rem 0 0; }
+.exchange-step.is-skipped { border-color: var(--line); background: var(--pending-fill); }
+.exchange-step.is-skipped .step-state { color: var(--ink); }
