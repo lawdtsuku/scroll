@@ -226,3 +226,13 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area
 .exchange-skip p { margin: .65rem 0 0; }
 .exchange-step.is-skipped { border-color: var(--line); background: var(--pending-fill); }
 .exchange-step.is-skipped .step-state { color: var(--ink); }
+
+/* Touch controls: prevent sub-16px focus zoom without restricting user zoom.
+   Keep inherited larger text and monospace families; override compact selectors. */
+@media (max-width: 720px), (pointer: coarse) {
+  html body input, html body select, html body textarea {
+    font-size: max(16px, 1em) !important;
+  }
+  dialog { overflow-wrap: anywhere; }
+  dialog input, dialog select, dialog textarea { min-width: 0; max-width: 100%; }
+}
