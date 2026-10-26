@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Scroll storage acceptance tests</title><style>body{font:16px system-ui;max-width:900px;margin:3rem auto;padding:1rem}li{padding:.5rem}.pass{color:#176339}.fail{color:#b22}</style><h1>Scroll storage acceptance tests</h1><p>Uses a fresh isolated test database. No campaign data is modified.</p><button id="run">Run storage checks</button><ul id="results"></ul><p id="status"></p><script type="module">
+import {openDB,commit,getCampaign,allCampaigns,setPreference,getPreference} from '/db.js';
+import {newCampaign,prepareCreation,preview,backup,prepareRestore,clone} from '/core.js';
+const equal=(a,b)=>{if(JSON.stringify(a)!==JSON.stringify(b))throw Error('Values differ');};
+document.querySelector('#run').onclick=async()=>{document.querySelector('#run').disabled=true;let failures=0;const checks=async(label,fn)=>{const li=document.createElement('li');try{await fn();li.className='pass';li.textContent='PASS — '+label;}catch(e){failures++;li.className='fail';li.textContent='FAIL — '+label+': '+e.message;}document.querySelector('#results').append(li);};
+await openDB('scroll-test-'+crypto.randomUUID());let a=prepareCreation(newCampaign({display_name:'Test A',character_name:'One'}),'Test');let b=prepareCreation(newCampaign({display_name:'Test B',character_name:'Two'}),'Test');
+await checks('Create two campaigns',async()=>{await commit(a,true);await commit(b,true);equal((await allCampaigns()).length,2);});
+await checks('Duplicate creation is rejected',async()=>{let rejected=false;try{await commit(a,true);}catch{rejected=true;}equal(rejected,true);equal((await getCampaign(a.campaign_id)).current_revision,1);});
+let first=preview(a.next,[{op:'advance_day',to_day:3}],'First preview');let stale=preview(a.next,[{op:'advance_day',to_day:8}],'Stale preview');
+await checks('Atomic save commits the expected preview',async()=>{await commit(first);equal((await getCampaign(a.campaign_id)).current_day,3);});
+await checks('Stale preview is rejected inside IDB with no partial changes',async()=>{let rejected=false;try{await commit(stale);}catch{rejected=true;}equal(rejected,true);equal(await getCampaign(a.campaign_id),first.next);});
+await checks('Campaign B remains unchanged',async()=>equal(await getCampaign(b.campaign_id),b.next));
+await checks('UI focus preferences do not mutate revision or journal',async()=>{await setPreference('focus:'+a.campaign_id,'other');equal(await getPreference('focus:'+a.campaign_id),'other');equal(await getCampaign(a.campaign_id),first.next);});
+let restored;
+await checks('Backup restore preserves history and creates a lineage boundary',async()=>{const source=backup(a.next);restored=prepareRestore(source,first.next,'Test restore');await commit(restored);const read=await getCampaign(a.campaign_id);equal(read.characters,a.next.characters);equal(read.journal.slice(0,a.next.journal.length),a.next.journal);equal(read.current_day,1);if(read.lineage_id===a.next.lineage_id)throw Error('Lineage unchanged');});
+await checks('Old lineage is rejected even when revision matches',async()=>{const wrong=preview(restored.next,[{op:'advance_day',to_day:9}],'Old timeline');wrong.lineage_id=a.lineage_id;let rejected=false;try{await commit(wrong);}catch{rejected=true;}equal(rejected,true);equal(await getCampaign(a.campaign_id),restored.next);});
+await checks('Concurrent saves cannot both apply',async()=>{const x=preview(restored.next,[{op:'advance_day',to_day:4}],'Race A');const y=preview(restored.next,[{op:'advance_day',to_day:5}],'Race B');const results=await Promise.allSettled([commit(x),commit(y)]);equal(results.filter(r=>r.status==='fulfilled').length,1);equal(results.filter(r=>r.status==='rejected').length,1);});
+document.querySelector('#status').textContent=failures?'FAILED: '+failures:'All 9 storage checks passed.';
+};</script></html>

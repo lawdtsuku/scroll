@@ -1,0 +1,23 @@
+<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><title>Roster storage upgrade checks</title><button id="run">Run isolated storage checks</button><pre id="result">Ready</pre><a href="/">Open synthetic campaign</a>
+<script type="module">
+import {migrateState} from '/core.js';
+import {openDB,allCampaigns,getPreference} from '/db.js';
+import {exportSnapshot} from '/snapshot.js';
+import {loadSnapshot} from '/snapshot-store.js';
+const check=(ok,message)=>{if(!ok)throw Error(message);};
+const rawOpen=(name,version)=>new Promise((resolve,reject)=>{const r=indexedDB.open(name,version);r.onupgradeneeded=()=>{const d=r.result;if(name==='scroll-trainer-viewer')d.createObjectStore('snapshot');else{d.createObjectStore('campaigns',{keyPath:'campaign_id'});d.createObjectStore('preferences',{keyPath:'key'});}};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+const write=(db,stores,fn)=>new Promise((resolve,reject)=>{const t=db.transaction(stores,'readwrite');fn(t);t.oncomplete=resolve;t.onabort=()=>reject(t.error);});
+const read=(db,store)=>new Promise((resolve,reject)=>{const r=db.transaction(store).objectStore(store).getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+document.querySelector('#run').onclick=async()=>{const out=document.querySelector('#result');out.textContent='Running';try{
+ const packet=await(await fetch('/fixture.json')).json(),old=packet.state;old.schema_version=1;for(const m of old.roster)delete m.attributes;
+ const expected=migrateState(old),name='upgrade-'+crypto.randomUUID(),db=await rawOpen(name,1);
+ await write(db,['campaigns','preferences'],t=>{t.objectStore('campaigns').put(old);t.objectStore('preferences').put({key:'retained',value:'yes'});});db.close();await openDB(name);
+ check(JSON.stringify(await allCampaigns())===JSON.stringify([expected]),'Migration changed unrelated state');check(await getPreference('retained')==='yes','Preference lost');
+ let blocked=false;try{await rawOpen(name,1);}catch(e){blocked=e.name==='VersionError';}check(blocked,'Old writer not blocked');
+ const badName='abort-'+crypto.randomUUID(),bad=structuredClone(old);bad.campaign_id='broken-campaign';bad.characters.forEach(c=>c.campaign_id=bad.campaign_id);delete bad.roster[1].nickname;const b=await rawOpen(badName,1);await write(b,['campaigns'],t=>{t.objectStore('campaigns').put(old);t.objectStore('campaigns').put(bad);});const before=await read(b,'campaigns');b.close();let rejected=false;try{await openDB(badName);}catch{rejected=true;}check(rejected,'Invalid migration accepted');const after=await rawOpen(badName,1);check(JSON.stringify(await read(after,'campaigns'))===JSON.stringify(before),'Failed migration partially wrote');after.close();
+ const snapshot=exportSnapshot(expected,expected.characters[0].character_id);snapshot.version=1;snapshot.roster.forEach(r=>delete r.member.attributes);const viewer=await rawOpen('scroll-trainer-viewer',1);await write(viewer,['snapshot'],t=>t.objectStore('snapshot').put(snapshot,'current'));viewer.close();const loaded=await loadSnapshot();check(loaded.version===2&&loaded.roster.every(r=>Array.isArray(r.member.attributes)),'Viewer migration failed');check(JSON.stringify(await allCampaigns())===JSON.stringify([expected]),'Viewer touched campaign DB');
+ // This origin is reserved for synthetic UI testing. Seed the app's old-version store.
+ const app=await rawOpen('scroll',1);await write(app,['campaigns'],t=>t.objectStore('campaigns').put(old));app.close();
+ out.textContent='PASS: campaign schema migration; frozen data and history preserved; preferences retained; old writer blocked; failed multi-campaign upgrade rolled back; snapshot migration isolated; synthetic UI campaign ready.';
+ }catch(e){out.textContent='FAIL: '+e.message;}};
+</script>

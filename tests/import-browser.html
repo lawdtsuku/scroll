@@ -1,0 +1,23 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Scroll import acceptance tests</title><style>body{font:16px system-ui;max-width:850px;margin:2rem auto;padding:1rem}button{padding:1rem;margin:.5rem}pre{white-space:pre-wrap;background:#e2eef0;padding:1rem}.pass{color:#275b3d}.fail{color:#a12f2f}</style><h1>Import storage acceptance</h1><p>Only a fresh isolated test database is used. Confirm the displayed test update to exercise the same human-review boundary as the app.</p><pre id="preview">Preparing isolated campaign…</pre><button id="confirm-save" disabled>Confirm test update</button><ol id="results"></ol><p id="status"></p><script type="module">
+import {openDB,commit,getCampaign} from '/db.js';
+import {newCampaign,prepareCreation,backup,prepareRestore,clone} from '/core.js';
+import {previewUpdate,clipboardCandidate} from '/updates.js';
+import {authorizeUpdateReview} from '/operation-policy.js';
+const equal=(a,b)=>{if(JSON.stringify(a)!==JSON.stringify(b))throw Error('Values differ');};let failures=0;
+const check=async(label,fn)=>{let li=document.createElement('li');try{await fn();li.textContent='PASS — '+label;li.className='pass';}catch(e){failures++;li.textContent='FAIL — '+label+': '+e.message;li.className='fail';}document.querySelector('#results').append(li);};
+await openDB('scroll-import-test-'+crypto.randomUUID());const creation=prepareCreation(newCampaign({display_name:'Disposable import test',character_name:'Tester'}),'Test baseline');await commit(creation,true);const initial=creation.next;
+const u={format:'scroll-session-update',version:1,campaign_id:initial.campaign_id,lineage_id:initial.lineage_id,base_revision:initial.current_revision,update_id:'browser-update-1',operations:[{op:'award_xp',character_id:initial.characters[0].character_id,delta:5,reason:'Test reward'},{op:'advance_day',to_day:2,reason:'Test travel'}]};
+let p=previewUpdate(initial,u);document.querySelector('#preview').textContent=JSON.stringify(p.diffs,null,2);
+await check('Direct transport commit without confirmation is rejected',async()=>{let rejected=false;try{await commit(p);}catch{rejected=true;}equal(rejected,true);equal(await getCampaign(initial.campaign_id),initial);});
+document.querySelector('#confirm-save').disabled=false;
+document.querySelector('#confirm-save').onclick=async event=>{
+ const reviewed=previewUpdate(initial,u);authorizeUpdateReview(reviewed,event);event.currentTarget.disabled=true;
+ await check('Trusted human confirmation commits one update atomically',async()=>{await commit(reviewed);const saved=await getCampaign(initial.campaign_id);equal(saved.characters[0].xp_total,5);equal(saved.current_day,2);equal(saved.current_revision,2);equal(saved.transactions.at(-1).update.receipt,reviewed.receipt);});
+ await check('Review authorization cannot be replayed',async()=>{let rejected=false;try{await commit(reviewed);}catch{rejected=true;}equal(rejected,true);});
+ await check('Duplicate import returns receipt without saving',async()=>{const saved=await getCampaign(initial.campaign_id);const result=previewUpdate(saved,u);equal(result.status,'already_applied');equal(result.receipt,reviewed.receipt);equal(await getCampaign(initial.campaign_id),saved);});
+ await check('Changed operations under an accepted ID conflict',async()=>{let code;const changed=clone(u);changed.operations[0].delta=99;try{previewUpdate(await getCampaign(initial.campaign_id),changed);}catch(e){code=e.code;}equal(code,'UPDATE_ID_CONFLICT');});
+ await check('Restoring a backup with accepted imports preserves receipts',async()=>{const saved=await getCampaign(initial.campaign_id);const r=prepareRestore(backup(saved),saved,'Test recovery');await commit(r);const restored=await getCampaign(initial.campaign_id);equal(restored.transactions[1].update.receipt,saved.transactions[1].update.receipt);});
+ await check('Old clipboard update is ignored after restore',async()=>{equal(clipboardCandidate(JSON.stringify(u),await getCampaign(initial.campaign_id)),null);});
+ document.querySelector('#status').textContent=failures?'FAILED: '+failures:'All 7 import storage checks passed.';
+};
+</script></html>
