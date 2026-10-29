@@ -1,5 +1,6 @@
 // Relay-only projection. Caller supplies a validated schema-1/2 campaign.
 // Never serialize storage records directly: every nested record is constructed here.
+import {dmUnresolvedEvents} from './event-handoff.js';
 import {dayToken, visibleEvents, stageProgress, thresholdProgress, chainRecordsPending} from './progress.js';
 
 export const RELAY_PROJECTION_VERSION = 1;
@@ -122,7 +123,7 @@ function project(s) {
     characters: s.characters.map(c => character(c, s.ability_slots_enabled)),
     roster: (s.roster || []).map(member), roster_config: config ? optional({label: scalar(config.label)}, config, ['hide_owner_stats']) : {label: 'Roster'}, roster_level_thresholds: levels(s.roster_level_thresholds),
     thresholds: (s.thresholds || []).map(threshold),
-    unresolved_events: visibleEvents(s).map(e => ({id: scalar(e.id), state: scalar(e.state)})),
+    unresolved_events: dmUnresolvedEvents(s).map(e => ({id: scalar(e.id), state: scalar(e.state), ...(e.alias!==undefined?{alias:scalar(e.alias)}:{})})),
     last_advance: lastAdvance(s),
     open_session: session ? optional({session_id: scalar(session.session_id), opened_at: scalar(session.opened_at), opening_day: scalar(session.opening_day)}, session, ['notes', 'advance_submitted']) : null,
     pending_remainder: s.scheduler?.remainder ? {target_day: scalar(s.scheduler.remainder.target_day)} : null,

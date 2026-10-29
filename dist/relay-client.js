@@ -1,4 +1,5 @@
 // Transport adapters only. No campaign commit or approval authority is granted here.
+import {newlyTriggeredBindings} from './event-handoff.js';
 import {relayAdmission, buildRelayProjection, hashPayload, RELAY_PROJECTION_VERSION} from './relay-projection.js';
 
 const utf8Bytes = text => new TextEncoder().encode(text).length;
@@ -56,12 +57,24 @@ export function projectReceipt(storedReceipt) {
         result.interruption.token = clip(r.interruption.token);
       }
     }
+    let bindings=[],bindingError;
+    try{bindings=newlyTriggeredBindings(r);}catch{bindingError='invalid_scheduler_diff';}
     result.confirmed_changes = [];
-    for (const c of r.confirmed_changes.slice(0, 50)) {
+    for (const c of (bindingError?[]:r.confirmed_changes.slice(0, 50))) {
       if (!plain(c) || c.character_id !== null && typeof c.character_id !== 'string' || typeof c.field !== 'string' || typeof c.reason !== 'string') return null;
       result.confirmed_changes.push({character_id: c.character_id === null ? null : clip(c.character_id), field: clip(c.field), reason: clip(c.reason)});
     }
-    result.confirmed_changes_omitted = Math.max(0, r.confirmed_changes.length - 50);
+    result.confirmed_changes_omitted = Math.max(0, r.confirmed_changes.length - result.confirmed_changes.length);
+    if(bindingError){result.event_bindings=[];result.event_bindings_complete=false;result.event_bindings_error=bindingError;}
+    if(bindings.length){
+      result.event_bindings=bindings;result.event_bindings_complete=true;
+      if(utf8Bytes(JSON.stringify(result))>=8192){
+        result.event_bindings=[];result.event_bindings_complete=false;result.event_bindings_error='too_large';
+        // Fail this entire binding list explicitly; never clip IDs or aliases.
+        if(utf8Bytes(JSON.stringify(result))>=8192){result.confirmed_changes=[];result.confirmed_changes_omitted=r.confirmed_changes.length;}
+      }
+    }
+    if(bindingError&&utf8Bytes(JSON.stringify(result))>=8192){result.confirmed_changes=[];result.confirmed_changes_omitted=r.confirmed_changes.length;}
     return utf8Bytes(JSON.stringify(result)) < 8192 ? result : null;
   } catch { return null; }
 }
